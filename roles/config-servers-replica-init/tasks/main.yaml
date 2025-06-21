@@ -1,0 +1,36 @@
+- name: Wait for all config‑server members to be reachable
+  wait_for:
+    host: "{{ hostvars[item].ansible_host }}"
+    port: 27019
+    timeout: 120
+    delay: 5
+    state: started 
+  loop: "{{ groups['config_servers'] }}"
+
+- name: Initiate replica set and create admin user
+  shell: |
+    {{ mongo_bin }}/mongosh "mongodb://localhost:27019/?tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --eval '
+    rs.initiate({
+      _id: "{{ repl_set_name }}",
+      configsvr: true,
+      members: [
+        { _id: 0, host: "{{ hostvars[groups["config_servers"][0]].ansible_host }}:{{ mongo_port }}" }
+      ]
+    });
+
+    sleep(5000);
+    
+    {% for host in groups["config_servers"][1:] %}
+    rs.add({ _id: {{ loop.index }}, host: "{{ hostvars[host].ansible_host }}:{{ mongo_port }}" });
+    sleep(1000);
+    {% endfor %}
+    
+    disableTelemetry();
+
+    db.getSiblingDB("admin").createUser({
+      user: "admin",
+      pwd: "{{ admin_user_password }}",
+      roles: [ { role: "root", db: "admin" } ]
+    });'
+  run_once: true
+    

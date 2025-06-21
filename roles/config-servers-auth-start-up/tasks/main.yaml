@@ -1,0 +1,83 @@
+- name: Kill mongod (pre-auth)
+  shell: pkill mongod || true
+  ignore_errors: yes
+
+- name: Fix ownership of all MongoDB files
+  become: true
+  file:
+    path: /mnt/mongo
+    recurse: yes
+    owner: mongodb
+    group: mongodb
+  
+- name: Disable transparent hugepage defragmentation
+  become: true
+  shell: |
+    echo 'defer+madvise' > /sys/kernel/mm/transparent_hugepage/defrag
+
+- name: Disable transparent hugepage paging
+  become: true
+  shell: |
+    echo '0' > /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none
+
+- name: Tune vm.swappiness to 1 (avoid swapping)
+  become: true
+  sysctl:
+    name: vm.swappiness
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Render mongod “auth” config file
+  template:
+    src: mongod.conf.j2
+    dest: "{{ mongo_conf_dir }}/mongod.conf"
+    owner: mongodb
+    group: mongodb
+    mode: '0644'
+
+- name: Create systemd service file for MongoDB config server
+  copy:
+    dest: /etc/systemd/system/mongod-configsvr.service
+    content: |
+      [Unit]
+      Description=MongoDB Config Server
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=mongodb
+      Group=mongodb
+      WorkingDirectory=/mnt/mongo
+      LimitNOFILE=64000
+      Environment=GLIBC_TUNABLES=glibc.pthread.rseq=0
+      ExecStart={{ mongo_bin }}/mongod \
+        --config "{{ mongo_conf_dir }}/mongod.conf"
+      Restart=always
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+  notify:
+    - Reload systemd
+
+- name: Enable and start MongoDB config server service
+  systemd:
+    name: mongod-configsvr.service
+    enabled: yes
+    state: started
+    
+- name: Remove the temporary no‑auth config
+  file:
+    path: "{{ mongo_conf_dir }}/mongod-no-auth.conf"
+    state: absent
+    
+- name: Fix ownership of all MongoDB files
+  become: true
+  file:
+    path: /mnt/mongo
+    recurse: yes
+    owner: mongodb
+    group: mongodb
+  

@@ -1,0 +1,10 @@
+- name: Create MongoDB log directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: mongodb
+    group: mongodb
+    mode: '0755'
+  loop:
+    - /mnt/mongo/mongos/logs
+

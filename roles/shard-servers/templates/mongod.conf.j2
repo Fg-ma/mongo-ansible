@@ -1,0 +1,23 @@
+storage:
+  dbPath: /mnt/mongo/shard/data
+systemLog:
+  destination: file
+  path: /mnt/mongo/shard/logs/mongod.log
+  logAppend: true
+net:
+  port: 27018
+  bindIp: 0.0.0.0
+  tls:
+    mode: requireTLS
+    certificateKeyFile: /mnt/mongo/certs/mongodb.pem
+    CAFile: /mnt/mongo/certs/ca.pem
+security:
+  authorization: enabled
+  keyFile: /mnt/mongo/certs/mongodb-keyfile
+replication:
+  replSetName: shardRS1
+sharding:
+  clusterRole: shardsvr
+processManagement:
+  timeZoneInfo: /usr/share/zoneinfo
+

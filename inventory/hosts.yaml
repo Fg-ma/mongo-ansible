@@ -1,0 +1,27 @@
+all:
+  hosts:
+    tableTopNode1:
+      ansible_host: 192.168.122.100
+    tableTopNode2:
+      ansible_host: 192.168.122.101
+    tableTopNode3:
+      ansible_host: 192.168.122.102
+
+  children:
+    config_servers:
+      hosts:
+        tableTopNode1:
+        tableTopNode2:
+        tableTopNode3:
+
+    shard_servers:
+      hosts:
+        tableTopNode1:
+        tableTopNode2:
+        tableTopNode3:
+
+    mongos_routers:
+      hosts:
+        localhost:
+          ansible_connection: local
+

@@ -1,0 +1,29 @@
+- name: Setup mongos Router
+  hosts: mongos_routers
+  become: true
+  roles:
+    - role: share
+  tasks:
+    - name: Ensure mongos log directory exists
+      file:
+        path: /mnt/mongo/logs
+        state: directory
+        owner: mongodb
+        group: mongodb
+        mode: '0755'
+        
+    - name: Start mongos
+      shell: |
+        /mnt/mongo/bin/mongos \
+          --configdb cfgRS1/cfg1:27021,cfg2:27021,cfg3:27021 \
+          --port 27017 \
+          --fork \
+          --logpath /mnt/mongo/logs/mongos.log \
+          --bind_ip_all \
+          --tlsMode requireTLS \
+          --tlsCertificateKeyFile /mnt/mongo/certs/mongodb.pem \
+          --tlsCAFile /mnt/mongo/certs/ca.pem \
+          --keyFile /mnt/mongo/certs/mongodb-keyfile
+      args:
+        creates: /mnt/mongo/logs/mongos.log
+

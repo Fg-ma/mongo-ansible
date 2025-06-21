@@ -1,0 +1,3 @@
+mongo_user: mongodb
+mongo_group: mongodb
+
