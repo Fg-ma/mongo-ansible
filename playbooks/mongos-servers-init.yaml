@@ -1,0 +1,24 @@
+- name: Set up Mongos routers - Server Set up
+  hosts: mongos_routers
+  become: true
+  vars_files:
+    - ../vars/mongos_routers.yaml
+  roles:
+    - role: share
+    - role: mongos-routers-server-setup
+
+- name: Set up Mongos routers - Init replica
+  hosts: tableTopNode1
+  become: true
+  vars_files:
+    - ../vars/mongos_routers.yaml
+  roles:
+    - role: mongos-routers-replica-init
+
+- name: Set up Mongos routers - Auth start up
+  hosts: mongos_routers
+  become: true
+  vars_files:
+    - ../vars/mongos_routers.yaml
+  roles:
+    - role: mongos-routers-auth-start-up

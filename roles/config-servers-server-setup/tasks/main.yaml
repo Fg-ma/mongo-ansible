@@ -4,19 +4,19 @@
     state: directory
     owner: mongodb
     group: mongodb
-    mode: '0755'
+    mode: "0755"
   loop:
     - "{{ mongo_data_dir }}"
     - "{{ mongo_log_dir }}"
     - "{{ mongo_conf_dir }}"
-    
-- name: Render mongod “no‑auth” config file
+
+- name: Render mongod “no-auth” config file
   template:
     src: mongod-no-auth.conf.j2
     dest: "{{ mongo_conf_dir }}/mongod-no-auth.conf"
     owner: mongodb
     group: mongodb
-    mode: '0644'
+    mode: "0644"
 
 - name: Start MongoDB without auth
   shell: >
@@ -29,7 +29,6 @@
 - name: Wait for MongoDB port to be open
   wait_for:
     host: localhost
-    port: 27019
+    port: "{{ mongo_port }}"
     timeout: 60
     delay: 5
-    

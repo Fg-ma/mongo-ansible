@@ -1,0 +1,17 @@
+- name: Set up Config Servers - Remove from replica
+  hosts: tableTopNode2
+  become: true
+  run_once: true
+  vars_files:
+    - ../vars/config_servers.yaml
+  roles:
+    - role: remove-config-servers-from-replica
+
+- name: Set up Config Servers - Clean up
+  hosts: remove_config_servers
+  become: true
+  run_once: true
+  vars_files:
+    - ../vars/config_servers.yaml
+  roles:
+    - role: remove-config-servers-cleanup

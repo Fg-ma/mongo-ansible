@@ -1,4 +1,0 @@
-mongod_role: shardsvr
-repl_set_name: shardRS1
-port: 27018
-

@@ -1,14 +1,14 @@
-- name: Kill mongod (pre-auth)
-  shell: pkill mongod || true
-  ignore_errors: yes
-
-- name: Fix ownership of all MongoDB files
-  become: true
+- name: Create MongoDB data/log directories
   file:
-    path: /mnt/mongo
-    recurse: yes
+    path: "{{ item }}"
+    state: directory
     owner: mongodb
     group: mongodb
+    mode: "0755"
+  loop:
+    - "{{ mongo_data_dir }}"
+    - "{{ mongo_log_dir }}"
+    - "{{ mongo_conf_dir }}"
 
 - name: Disable transparent hugepage defragmentation
   become: true
@@ -68,11 +68,6 @@
     enabled: yes
     state: started
 
-- name: Remove the temporary no‑auth config
-  file:
-    path: "{{ mongo_conf_dir }}/mongod-no-auth.conf"
-    state: absent
-
 - name: Fix ownership of all MongoDB files
   become: true
   file:
@@ -82,3 +77,10 @@
     group: mongodb
   notify:
     - Reload systemd
+
+- name: Wait for MongoDB port to be open
+  wait_for:
+    host: localhost
+    port: "{{ mongo_port }}"
+    timeout: 60
+    delay: 5

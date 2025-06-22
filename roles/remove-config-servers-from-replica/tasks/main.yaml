@@ -1,0 +1,57 @@
+- name: Get current primary host
+  shell: |
+    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ mongo_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --quiet --eval '
+      const status = rs.status();
+      print(status.members.find(m => m.stateStr === "PRIMARY").name);
+    '
+  register: current_primary_result
+  run_once: true
+
+- name: Set current primary as a fact
+  set_fact:
+    current_primary: "{{ current_primary_result.stdout.strip() }}"
+
+- name: Remove all config servers that are not the primary
+  shell: |
+    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ mongo_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --eval '
+    {% for host in groups["remove_config_servers"] %}
+    if ("{{ hostvars[host].ansible_host }}:{{ mongo_port }}" !== "{{ current_primary }}") {
+      print("Removing: {{ hostvars[host].ansible_host }}:{{ mongo_port }}");
+      rs.remove("{{ hostvars[host].ansible_host }}:{{ mongo_port }}");
+      sleep(1000);
+    } else {
+      print("Skipping primary: {{ hostvars[host].ansible_host }}:{{ mongo_port }}");
+    }
+    {% endfor %}
+    '
+  run_once: true
+
+- name: Step down current primary if it's in the remove list
+  shell: |
+    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ mongo_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --eval '
+    try {
+      rs.stepDown(60, 60);
+    } catch (e) {
+      print("Step down failed: " + e.message);
+    }
+    '
+  when: current_primary in groups["remove_config_servers"] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '$', ':' ~ mongo_port) | list
+  run_once: true
+
+- name: Wait for new primary to be elected
+  shell: |
+    sleep 2
+    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ mongo_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --quiet --eval 'print(rs.isMaster().primary)'
+  when: current_primary in groups["remove_config_servers"] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '$', ':' ~ mongo_port) | list
+  register: new_primary_result
+  run_once: true
+
+- name: Remove old primary from new primary
+  shell: |
+    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@{{ new_primary_result.stdout | trim }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem" --eval '
+    rs.remove("{{ current_primary }}");
+    '
+  when:
+    - current_primary in groups["remove_config_servers"] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '$', ':' ~ mongo_port) | list
+    - new_primary_result.stdout | trim != ''
+  run_once: true

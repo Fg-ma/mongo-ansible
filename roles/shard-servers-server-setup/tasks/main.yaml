@@ -1,0 +1,56 @@
+- name: Create MongoDB data/log/conf directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: mongodb
+    group: mongodb
+    mode: "0755"
+  loop:
+    - /mnt/mongo/shard/data
+    - /mnt/mongo/shard/logs
+    - /mnt/mongo/shard/conf
+
+- name: Ensure DB path exists
+  file:
+    path: "{{ mongo_db_path }}"
+    state: directory
+    owner: mongodb
+    group: mongodb
+    mode: 0755
+
+- name: Deploy mongod.conf
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+
+- name: Start mongod service
+  systemd:
+    name: mongod
+    state: restarted
+    enabled: true
+
+- name: Wait for mongod to be up
+  wait_for:
+    port: "{{ mongo_port }}"
+    delay: 5
+    timeout: 60
+
+- name: Initiate shard replica set (only on primary)
+  when: inventory_hostname == groups['shards'][0]
+  shell: |
+    echo '
+    rs.initiate({
+      _id: "{{ repl_set_name }}",
+      members: [
+        {% for host in groups["shards"] %}
+        { _id: {{ loop.index0 }}, host: "{{ host }}:{{ mongo_port }}" }{{ "," if not loop.last }}
+        {% endfor %}
+      ]
+    })' | {{ mongo_bin }}/mongosh --port {{ mongo_port }}
+  register: rs_initiate
+  failed_when: rs_initiate.rc != 0 and "already initialized" not in rs_initiate.stderr
+
+- name: Add shard to cluster (only from mongos router)
+  when: inventory_hostname == 'cfg1' # or wherever your mongos runs
+  shell: |
+    echo 'sh.addShard("{{ repl_set_name }}/{{ groups["shards"] | join(":{},".format(mongo_port)) }}:{{ mongo_port }}")' | {{ mongo_bin }}/mongosh --port 27017

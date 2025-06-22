@@ -1,0 +1,5 @@
+- name: Restart Config Servers
+  hosts: config_servers
+  become: true
+  roles:
+    - role: config-servers-restart

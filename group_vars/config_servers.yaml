@@ -1,4 +1,0 @@
-mongod_role: configsvr
-repl_set_name: cfgRS1
-port: 27019
-
