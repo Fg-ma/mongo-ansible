@@ -1,11 +1,11 @@
-- name: Restart mongod-configsvr service
-  ansible.builtin.systemd:
-    name: mongod-configsvr.service
-    state: restarted
-  become: true
-
 - name: Truncate mongod log safely
   ansible.builtin.command: truncate -s 0 /mnt/mongo/config/logs/mongod.log
   become: true
   args:
     removes: /mnt/mongo/config/logs/mongod.log
+
+- name: Restart mongod-configsvr service
+  ansible.builtin.systemd:
+    name: mongod-configsvr.service
+    state: restarted
+  become: true

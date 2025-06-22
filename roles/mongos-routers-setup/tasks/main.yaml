@@ -1,0 +1,57 @@
+- name: Create MongoDB log/conf directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: mongodb
+    group: mongodb
+    mode: "0755"
+  loop:
+    - "{{ mongo_log_dir }}"
+    - "{{ mongo_conf_dir }}"
+
+- name: Render mongod “auth” config file
+  template:
+    src: mongos.conf.j2
+    dest: "{{ mongo_conf_dir }}/mongos.conf"
+    owner: mongodb
+    group: mongodb
+    mode: "0644"
+
+- name: Create mongos systemd unit
+  copy:
+    dest: /etc/systemd/system/mongos.service
+    content: |
+      [Unit]
+      Description=MongoDB Shard Router
+      After=network.target
+
+      [Service]
+      User=mongodb
+      ExecStart={{ mongo_bin }}/mongos --config {{ mongo_conf_dir }}/mongos.conf
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Reload systemd and start mongos
+  systemd:
+    daemon_reload: true
+    name: mongos
+    enabled: true
+    state: started
+
+- name: Fix ownership of all MongoDB files
+  become: true
+  file:
+    path: /mnt/mongo
+    recurse: yes
+    owner: mongodb
+    group: mongodb
+  notify:
+    - Reload systemd
+
+- name: Wait for mongos to be ready
+  wait_for:
+    port: "{{ mongo_port }}"
+    delay: 3
+    timeout: 60

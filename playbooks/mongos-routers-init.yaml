@@ -1,0 +1,8 @@
+- name: Set up Mongos routers - Set up
+  hosts: mongos_routers
+  become: true
+  vars_files:
+    - ../vars/mongos_routers.yaml
+  roles:
+    - role: share
+    - role: mongos-routers-setup
