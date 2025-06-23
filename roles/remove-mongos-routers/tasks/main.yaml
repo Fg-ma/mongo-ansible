@@ -6,7 +6,8 @@
   become: true
 
 - name: Kill mongos process (ignoring failure if not running)
-  command: pkill -f mongos
+  command: |
+    pkill -F "{{ mongo_log_dir }}/mongos.pid"
   ignore_errors: true
   become: true
 

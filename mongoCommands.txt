@@ -1,0 +1,72 @@
+// Config server login
+sudo -u mongodb bin/mongosh "mongodb://admin:password@192.168.122.100:27019,192.168.122.101:27019,192.168.122.102:27019/admin?replicaSet=cfgRS1&tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/mongodb.pem"
+
+// Shard server login
+sudo -u mongodb bin/mongosh "mongodb://admin:password@192.168.122.100:27020,192.168.122.101:27020,192.168.122.102:27020/admin?replicaSet=shardRS1&tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/mongodb.pem"
+
+// Mongos server login
+sudo -u mongodb bin/mongosh "mongodb://admin:password@192.168.122.100:27021/admin?tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/mongodb.pem"
+
+
+
+// Format new node
+- Make xfs partition
+sudo apt update
+sudo apt install -y parted xfsprogs
+lsblk
+sudo parted /dev/sdb mklabel gpt
+sudo parted -a opt /dev/sdb mkpart primary xfs 0% 100%
+sudo mkfs.xfs /dev/sdb1
+lsblk -f
+sudo nano /etc/fstab
+UUID=1234-5678  /mnt/mongo  ext4  defaults  0  2
+
+
+
+// Force clean config server
+sudo systemctl stop mongod-configsvr.service
+sudo systemctl disable mongod-configsvr.service
+sudo pkill -f mongod.*configsvr
+sudo rm -rf /etc/systemd/system/mongod-configsvr.service
+sudo rm -rf -R /mnt/mongo/*
+sudo ls -l /mnt/mongo
+
+// Force clean mongos server
+sudo systemctl stop mongos.service
+sudo systemctl disable mongos.service
+pkill mongos
+sudo rm -rf /etc/systemd/system/mongos.service
+sudo rm -rf -R /mnt/mongo/mongos
+sudo ls -l /mnt/mongo
+
+// Force clean shard server
+sudo systemctl stop mongod-shardsvr.service
+sudo systemctl disable mongod-shardsvr.service
+sudo pkill -f mongod.*shardsvr
+sudo rm -rf /etc/systemd/system/mongod-shardsvr.service
+sudo rm -rf -R /mnt/mongo/shard
+sudo ls -l /mnt/mongo
+
+
+
+// Remake certs
+# 1a. Generate the private key and CSR
+openssl req -new -nodes \
+  -out dual.csr \
+  -keyout dual.key \
+  -config dual.cnf
+
+# 2a. Sign the CSR to produce the cert
+openssl x509 -req \
+  -in dual.csr \
+  -CA ../ca.pem -CAkey ../ca.key -CAcreateserial \
+  -out dual.crt \
+  -extensions v3_req -extfile dual.cnf \
+  -days 365
+  
+# 3a. Concatenate key+cert into the single file MongoDB expects
+cat dual.crt dual.key > dual.pem
+
+# Secure it:
+chmod 600 dual.pem
+

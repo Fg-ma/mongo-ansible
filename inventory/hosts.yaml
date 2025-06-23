@@ -17,13 +17,13 @@ all:
     new_config_servers:
       hosts:
         # tableTopNode1:
-        tableTopNode2:
-        tableTopNode3:
+        # tableTopNode2:
+        # tableTopNode3:
 
     remove_config_servers:
       hosts:
         # tableTopNode1:
-        tableTopNode2:
+        # tableTopNode2:
         # tableTopNode3:
 
     shard_servers:
@@ -34,15 +34,15 @@ all:
 
     new_shard_servers:
       hosts:
-        tableTopNode1:
-        tableTopNode2:
-        tableTopNode3:
+        # tableTopNode1:
+        # tableTopNode2:
+        # tableTopNode3:
 
     remove_shard_servers:
       hosts:
         # tableTopNode1:
         # tableTopNode2:
-        tableTopNode3:
+        # tableTopNode3:
 
     mongos_routers:
       hosts:
@@ -54,4 +54,4 @@ all:
       hosts:
         # tableTopNode1:
         # tableTopNode2:
-        tableTopNode3:
+        # tableTopNode3:

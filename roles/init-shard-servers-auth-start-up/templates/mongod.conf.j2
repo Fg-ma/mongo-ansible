@@ -26,3 +26,6 @@ security:
   authorization: enabled
   keyFile: {{ mongo_cert_dir }}/mongodb-keyfile
 
+processManagement:
+  pidFilePath: "{{ mongo_log_dir }}/mongod.pid"
+  

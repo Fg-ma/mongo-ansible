@@ -19,3 +19,6 @@ sharding:
 security:
   keyFile: {{ mongo_cert_dir }}/mongodb-keyfile
 
+processManagement:
+  pidFilePath: "{{ mongo_log_dir }}/mongos.pid"
+  

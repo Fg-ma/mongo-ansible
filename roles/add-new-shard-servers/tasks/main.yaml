@@ -79,6 +79,25 @@
     - Reload systemd
 
 - name: Wait for MongoDB port to be open
+  ignore_errors: true
+  wait_for:
+    host: localhost
+    port: "{{ shard_port }}"
+    timeout: 60
+    delay: 5
+
+- name: Fix ownership of all MongoDB files
+  become: true
+  file:
+    path: /mnt/mongo
+    recurse: yes
+    owner: mongodb
+    group: mongodb
+  notify:
+    - Reload systemd
+
+- name: Wait for MongoDB port to be open
+  ignore_errors: true
   wait_for:
     host: localhost
     port: "{{ shard_port }}"

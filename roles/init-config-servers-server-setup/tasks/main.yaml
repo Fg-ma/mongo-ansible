@@ -10,6 +10,15 @@
     - "{{ mongo_log_dir }}"
     - "{{ mongo_conf_dir }}"
 
+- name: Create empty mongod.pid file
+  file:
+    path: "{{ mongo_log_dir }}/mongod.pid"
+    state: touch
+    owner: mongodb
+    group: mongodb
+    mode: "0644"
+  become: true
+
 - name: Render mongod “no-auth” config file
   template:
     src: mongod-no-auth.conf.j2
@@ -22,7 +31,6 @@
   shell: >
     {{ mongo_bin }}/mongod
     --config "{{ mongo_conf_dir }}/mongod-no-auth.conf"
-    --fork
   args:
     creates: "{{ mongo_log_dir }}/mongod.log"
 

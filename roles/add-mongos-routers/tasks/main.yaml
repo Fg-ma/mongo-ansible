@@ -9,6 +9,15 @@
     - "{{ mongo_log_dir }}"
     - "{{ mongo_conf_dir }}"
 
+- name: Create empty mongos.pid file
+  file:
+    path: "{{ mongo_log_dir }}/mongos.pid"
+    state: touch
+    owner: mongodb
+    group: mongodb
+    mode: "0644"
+  become: true
+
 - name: Render mongod “auth” config file
   template:
     src: mongos.conf.j2

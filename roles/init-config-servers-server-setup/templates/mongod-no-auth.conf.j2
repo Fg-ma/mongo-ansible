@@ -25,3 +25,7 @@ sharding:
 security:
   authorization: disabled
 
+processManagement:
+  fork: true
+  pidFilePath: {{ mongo_log_dir }}/mongod.pid
+  
