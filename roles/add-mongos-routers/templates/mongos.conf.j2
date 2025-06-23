@@ -1,13 +1,10 @@
-storage:
-  dbPath: {{ mongo_data_dir }}
-
 systemLog:
   destination: file
-  path: {{ mongo_log_dir }}/mongod.log
+  path: {{ mongo_log_dir }}/mongos.log
   logAppend: true
 
 net:
-  port: {{ config_port }}
+  port: {{ mongos_port }}
   bindIp: 0.0.0.0
   tls:
     mode: requireTLS
@@ -16,13 +13,9 @@ net:
     allowConnectionsWithoutCertificates: false
     allowInvalidCertificates: false
 
-replication:
-  replSetName: "{{ repl_set_name }}"
-  
 sharding:
-  clusterRole: "{{ cluster_role }}"
+  configDB: {{ config_repl_set_name }}/{{ config_server_hosts | join(',') }}
 
 security:
-  authorization: enabled
   keyFile: {{ mongo_cert_dir }}/mongodb-keyfile
 

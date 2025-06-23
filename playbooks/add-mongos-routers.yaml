@@ -1,0 +1,8 @@
+- name: Add Mongos routers
+  hosts: mongos_routers
+  become: true
+  vars_files:
+    - ../vars/mongos_routers.yaml
+  roles:
+    - role: share
+    - role: add-mongos-routers

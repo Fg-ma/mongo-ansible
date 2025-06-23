@@ -29,7 +29,7 @@
     state: present
     reload: yes
 
-- name: Render mongod “auth” config file
+- name: Render mongod shard “auth” config file
   template:
     src: mongod.conf.j2
     dest: "{{ mongo_conf_dir }}/mongod.conf"
@@ -37,12 +37,12 @@
     group: mongodb
     mode: "0644"
 
-- name: Create systemd service file for MongoDB config server
+- name: Create systemd service file for MongoDB shard server
   copy:
-    dest: /etc/systemd/system/mongod-configsvr.service
+    dest: /etc/systemd/system/mongod-shardsvr.service
     content: |
       [Unit]
-      Description=MongoDB Config Server
+      Description=MongoDB Shard Server
       After=network.target
 
       [Service]
@@ -62,9 +62,9 @@
   notify:
     - Reload systemd
 
-- name: Enable and start MongoDB config server service
+- name: Enable and start MongoDB shard server service
   systemd:
-    name: mongod-configsvr.service
+    name: mongod-shardsvr.service
     enabled: yes
     state: started
 
@@ -81,6 +81,6 @@
 - name: Wait for MongoDB port to be open
   wait_for:
     host: localhost
-    port: "{{ config_port }}"
+    port: "{{ shard_port }}"
     timeout: 60
     delay: 5

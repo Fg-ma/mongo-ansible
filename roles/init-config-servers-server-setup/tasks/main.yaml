@@ -1,0 +1,34 @@
+- name: Create MongoDB data/log directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: mongodb
+    group: mongodb
+    mode: "0755"
+  loop:
+    - "{{ mongo_data_dir }}"
+    - "{{ mongo_log_dir }}"
+    - "{{ mongo_conf_dir }}"
+
+- name: Render mongod “no-auth” config file
+  template:
+    src: mongod-no-auth.conf.j2
+    dest: "{{ mongo_conf_dir }}/mongod-no-auth.conf"
+    owner: mongodb
+    group: mongodb
+    mode: "0644"
+
+- name: Start MongoDB without auth
+  shell: >
+    {{ mongo_bin }}/mongod
+    --config "{{ mongo_conf_dir }}/mongod-no-auth.conf"
+    --fork
+  args:
+    creates: "{{ mongo_log_dir }}/mongod.log"
+
+- name: Wait for MongoDB port to be open
+  wait_for:
+    host: localhost
+    port: "{{ config_port }}"
+    timeout: 60
+    delay: 5

@@ -1,14 +1,23 @@
-- name: Create MongoDB data/log directories
+- name: Kill mongod process (ignoring failure if not running)
+  command: |
+    pkill -F "{{ mongo_log_dir }}/mongod.pid"
+  ignore_errors: true
+  become: true
+
+- name: Delete mongod.pid file
   file:
-    path: "{{ item }}"
-    state: directory
+    path: "{{ mongo_log_dir }}/mongod.pid"
+    state: absent
+  become: true
+
+- name: Fix ownership of all MongoDB files
+  become: true
+  ignore_errors: true
+  file:
+    path: /mnt/mongo
+    recurse: yes
     owner: mongodb
     group: mongodb
-    mode: "0755"
-  loop:
-    - "{{ mongo_data_dir }}"
-    - "{{ mongo_log_dir }}"
-    - "{{ mongo_conf_dir }}"
 
 - name: Disable transparent hugepage defragmentation
   become: true
@@ -29,7 +38,7 @@
     state: present
     reload: yes
 
-- name: Render mongod “auth” config file
+- name: Render mongod shard “auth” config file
   template:
     src: mongod.conf.j2
     dest: "{{ mongo_conf_dir }}/mongod.conf"
@@ -37,12 +46,12 @@
     group: mongodb
     mode: "0644"
 
-- name: Create systemd service file for MongoDB config server
+- name: Create systemd service file for MongoDB shard server
   copy:
-    dest: /etc/systemd/system/mongod-configsvr.service
+    dest: /etc/systemd/system/mongod-shardsvr.service
     content: |
       [Unit]
-      Description=MongoDB Config Server
+      Description=MongoDB Shard Server
       After=network.target
 
       [Service]
@@ -62,11 +71,16 @@
   notify:
     - Reload systemd
 
-- name: Enable and start MongoDB config server service
+- name: Enable and start MongoDB shard server service
   systemd:
-    name: mongod-configsvr.service
+    name: mongod-shardsvr.service
     enabled: yes
     state: started
+
+- name: Remove the temporary no-auth config
+  file:
+    path: "{{ mongo_conf_dir }}/mongod-no-auth.conf"
+    state: absent
 
 - name: Fix ownership of all MongoDB files
   become: true
@@ -78,9 +92,26 @@
   notify:
     - Reload systemd
 
-- name: Wait for MongoDB port to be open
+- name: Wait for mongod to be up
   wait_for:
-    host: localhost
-    port: "{{ config_port }}"
-    timeout: 60
+    port: "{{ shard_port }}"
     delay: 5
+    timeout: 60
+  ignore_errors: true
+
+- name: Fix ownership of all MongoDB files
+  become: true
+  file:
+    path: /mnt/mongo
+    recurse: yes
+    owner: mongodb
+    group: mongodb
+  notify:
+    - Reload systemd
+
+- name: Wait for mongod to be up
+  wait_for:
+    port: "{{ shard_port }}"
+    delay: 5
+    timeout: 60
+  ignore_errors: true

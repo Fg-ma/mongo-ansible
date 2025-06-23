@@ -1,0 +1,52 @@
+- name: Wait for all shard-server members to be reachable
+  wait_for:
+    host: "{{ hostvars[item].ansible_host }}"
+    port: "{{ shard_port }}"
+    timeout: 120
+    delay: 5
+    state: started
+  loop: "{{ groups['shard_servers'] }}"
+
+- name: Initiate replica set
+  shell: >
+    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    --eval 'rs.initiate({ _id: "{{ repl_set_name }}", members: [ { _id: 0, host: "{{ primary_node }}:{{ shard_port }}" } ] })'
+  run_once: true
+  register: rs_initiate_result
+  failed_when: rs_initiate_result.rc != 0 and '"already initialized"' not in rs_initiate_result.stderr
+  become: true
+
+- name: Wait for primary election
+  shell: >
+    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    --quiet --eval 'while(rs.status().myState != 1) { sleep(1000); }'
+  run_once: true
+  become: true
+
+- name: Add other members to the replica set
+  shell: >
+    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    --eval 'rs.add({ _id: {{ server_id }}, host: "{{ server }}:{{ shard_port }}" })'
+  loop: "{{ groups['shard_servers'] | map('extract', hostvars, 'ansible_host') | list }}"
+  loop_control:
+    index_var: idx
+    loop_var: server
+  when: server != primary_node
+  vars:
+    server_id: "{{ idx + 1 }}"
+  run_once: true
+  become: true
+
+- name: Disable Mongo telemetry
+  shell: >
+    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    --eval 'disableTelemetry()'
+  run_once: true
+  become: true
+
+- name: Create admin user
+  shell: >
+    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    --eval 'db.getSiblingDB("admin").createUser({ user: "admin", pwd: "{{ admin_user_password }}", roles: [ { role: "root", db: "admin" } ] })'
+  run_once: true
+  become: true

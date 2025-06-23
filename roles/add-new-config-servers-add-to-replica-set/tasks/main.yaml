@@ -1,7 +1,7 @@
 - name: Wait for all config-server members to be reachable
   wait_for:
     host: "{{ hostvars[item].ansible_host }}"
-    port: "{{ mongo_port }}"
+    port: "{{ config_port }}"
     timeout: 120
     delay: 5
     state: started
@@ -9,7 +9,7 @@
 
 - name: Add new servers to replica
   shell: |
-    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ mongo_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --eval '
+    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --eval '
     const currentConfig = rs.conf();
     let maxId = -1;
     for (const m of currentConfig.members) {
@@ -18,7 +18,7 @@
 
     {% for host in groups["new_config_servers"] %}
     maxId++;
-    rs.add({ _id: maxId, host: "{{ hostvars[host].ansible_host }}:{{ mongo_port }}" });
+    rs.add({ _id: maxId, host: "{{ hostvars[host].ansible_host }}:{{ config_port }}" });
     sleep(1000);
     {% endfor %}
     '

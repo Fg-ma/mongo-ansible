@@ -6,7 +6,7 @@
   become: true
 
 - name: Kill mongod process (ignoring failure if not running)
-  command: pkill -f mongod
+  command: pkill -f mongod.*configsvr
   ignore_errors: true
   become: true
 

@@ -1,5 +1,7 @@
 - name: Restart Config Servers
   hosts: config_servers
   become: true
+  vars_files:
+    - ../vars/mongos_routers.yaml
   roles:
-    - role: config-servers-restart
+    - role: restart-config-servers

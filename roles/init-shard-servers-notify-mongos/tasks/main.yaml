@@ -1,0 +1,24 @@
+- name: Wait for all shard-server members to be reachable
+  wait_for:
+    host: "{{ hostvars[item].ansible_host }}"
+    port: "{{ shard_port }}"
+    timeout: 120
+    delay: 5
+    state: started
+  loop: "{{ groups['shard_servers'] }}"
+
+- name: Add shard to cluster
+  become: true
+  command: >
+    {{ mongo_bin }}/mongosh
+    "mongodb://admin:{{ admin_user_password }}@{{ mongos_node }}:{{ mongos_port }}/admin?tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    --eval '
+      const replSet = "{{ repl_set_name }}";
+      const hosts = [
+        {% for host in groups["shard_servers"] %}
+        "{{ hostvars[host].ansible_host }}:{{ shard_port }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ];
+      const shardString = replSet + "/" + hosts.join(",");
+      sh.addShard(shardString);
+    '

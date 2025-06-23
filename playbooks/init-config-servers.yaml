@@ -1,0 +1,24 @@
+- name: Set up Config Servers - Server Set up
+  hosts: config_servers
+  become: true
+  vars_files:
+    - ../vars/config_servers.yaml
+  roles:
+    - role: share
+    - role: init-config-servers-server-setup
+
+- name: Set up Config Servers - Init replica
+  hosts: tableTopNode1
+  become: true
+  vars_files:
+    - ../vars/config_servers.yaml
+  roles:
+    - role: init-config-servers-replica-init
+
+- name: Set up Config Servers - Auth start up
+  hosts: config_servers
+  become: true
+  vars_files:
+    - ../vars/config_servers.yaml
+  roles:
+    - role: init-config-servers-auth-start-up

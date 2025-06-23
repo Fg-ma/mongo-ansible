@@ -1,6 +1,0 @@
-- name: Configure Shard Replica Set
-  hosts: shard_servers
-  become: true
-  roles:
-    - role: share
-    - role: shard-servers

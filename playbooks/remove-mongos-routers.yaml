@@ -1,0 +1,7 @@
+- name: Remove Mongos routers
+  hosts: remove_mongos_routers
+  become: true
+  vars_files:
+    - ../vars/mongos_routers.yaml
+  roles:
+    - role: remove-mongos-routers
