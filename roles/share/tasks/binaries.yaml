@@ -1,0 +1,32 @@
+- name: Copy MongoDB server binaries
+  copy:
+    src: "{{ item.src }}"
+    dest: "/mnt/mongo/bin/{{ item.name }}"
+    mode: "0755"
+    owner: mongodb
+    group: mongodb
+  loop:
+    - { src: "{{ playbook_dir }}/../system/bin/mongod", name: "mongod" }
+    - { src: "{{ playbook_dir }}/../system/bin/mongos", name: "mongos" }
+
+- name: Copy MongoDB shell binaries
+  copy:
+    src: "{{ item.src }}"
+    dest: "/mnt/mongo/bin/{{ item.name }}"
+    mode: "0755"
+    owner: mongodb
+    group: mongodb
+  loop:
+    - { src: "{{ playbook_dir }}/../shell/bin/mongosh", name: "mongosh" }
+    - {
+        src: "{{ playbook_dir }}/../shell/bin/mongosh_crypt_v1.so",
+        name: "mongosh_crypt_v1.so",
+      }
+
+- name: Copy Vault binary to target host
+  copy:
+    src: "{{ playbook_dir }}/../vault/vault"
+    dest: /mnt/mongo/bin/vault
+    mode: "0755"
+    owner: vaultagent
+    group: vaultagent

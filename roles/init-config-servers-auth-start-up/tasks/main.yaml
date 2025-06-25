@@ -7,7 +7,7 @@
 - name: Fix ownership of all MongoDB files
   become: true
   file:
-    path: /mnt/mongo
+    path: /mnt/mongo/config
     recurse: yes
     owner: mongodb
     group: mongodb
@@ -78,7 +78,7 @@
 - name: Fix ownership of all MongoDB files
   become: true
   file:
-    path: /mnt/mongo
+    path: /mnt/mongo/config
     recurse: yes
     owner: mongodb
     group: mongodb

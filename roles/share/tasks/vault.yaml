@@ -1,0 +1,106 @@
+- name: Create empty vault.pid file
+  file:
+    path: "/mnt/mongo/vault/vault.pid"
+    state: touch
+    owner: vaultagent
+    group: vaultagent
+    mode: "0644"
+  become: true
+
+- name: Copy Vault role_id
+  copy:
+    src: "/home/fg/Desktop/vault/mongo-1/role_id"
+    dest: "/mnt/mongo/vault/role_id"
+    owner: vaultagent
+    group: vaultagent
+    mode: "0600"
+
+- name: Copy Vault secret_id
+  copy:
+    src: "/home/fg/Desktop/vault/mongo-1/secret_id"
+    dest: "/mnt/mongo/vault/secret_id"
+    owner: vaultagent
+    group: vaultagent
+    mode: "0600"
+
+- name: Copy Vault Agent config
+  template:
+    src: /home/fg/Desktop/vault/mongo-1/agent-config.hcl.j2
+    dest: /mnt/mongo/vault/agent-config.hcl
+    owner: vaultagent
+    group: vaultagent
+    mode: "0600"
+
+- name: Copy Vault Agent mongodb.pem template
+  copy:
+    src: /home/fg/Desktop/vault/mongo-1/mongodb.pem.ctmpl
+    dest: /mnt/mongo/vault/templates/mongodb.pem.ctmpl
+    owner: vaultagent
+    group: vaultagent
+    mode: "0600"
+
+- name: Copy Vault Agent mongodb-keyfile template
+  copy:
+    src: /home/fg/Desktop/vault/mongo-1/mongodb-keyfile.ctmpl
+    dest: /mnt/mongo/vault/templates/mongodb-keyfile.ctmpl
+    owner: vaultagent
+    group: vaultagent
+    mode: "0600"
+
+- name: Deploy restart script for MongoDB services
+  copy:
+    dest: /mnt/mongo/vault/scripts/restart-mongo-services.sh
+    content: |
+      #!/bin/bash
+
+      # Fix ownership of rendered certs
+      for file in mongodb.pem mongodb-keyfile; do
+          sudo chown mongodb:mongodbcerts "/mnt/mongo/certs/$file"
+      done
+
+      # Restart MongoDB services
+      for svc in mongod-configsvr mongos mongod-shardsvr; do
+          systemctl list-units --full -all "$svc.service" | grep -Fq loaded && systemctl restart "$svc"
+      done
+    owner: root
+    group: vaultagent
+    mode: "0754"
+
+- name: Add sudoers rule for vaultagent to run restart script and chown certs
+  copy:
+    dest: /etc/sudoers.d/vaultagent-mongo
+    content: |
+      vaultagent ALL=(ALL) NOPASSWD: \
+        /mnt/mongo/vault/scripts/restart-mongo-services.sh, \
+        /bin/systemctl restart mongod-configsvr.service, \
+        /bin/systemctl restart mongos.service, \
+        /bin/systemctl restart mongod-shardsvr.service, \
+        /bin/chown
+    owner: root
+    group: root
+    mode: "0440"
+
+- name: Create systemd service file for vault agent
+  copy:
+    dest: /etc/systemd/system/vault-agent.service
+    content: |
+      [Unit]
+      Description=Vault Agent
+      After=network.target
+
+      [Service]
+      User=vaultagent
+      Group=vaultagent
+      ExecStart=/mnt/mongo/bin/vault agent -config=/mnt/mongo/vault/agent-config.hcl
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+  notify:
+    - Reload systemd
+
+- name: Start and enable Vault Agent service
+  systemd:
+    name: vault-agent
+    state: started
+    enabled: yes

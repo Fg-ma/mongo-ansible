@@ -1,74 +1,11 @@
-- name: Ensure mongodb user exists
-  user:
-    name: mongodb
-    state: present
+- name: Include create users tasks
+  import_tasks: createUsers.yaml
 
-- name: Create /mnt/mongo/bin directory
-  file:
-    path: /mnt/mongo/bin
-    state: directory
-    owner: mongodb
-    group: mongodb
-    mode: '0755'
+- name: Include mkdirs tasks
+  import_tasks: mkdirs.yaml
 
-- name: Copy MongoDB server binaries
-  copy:
-    src: "{{ item.src }}"
-    dest: "/mnt/mongo/bin/{{ item.name }}"
-    mode: '0755'
-    owner: mongodb
-    group: mongodb
-  loop:
-    - { src: "{{ playbook_dir }}/../system/bin/mongod", name: "mongod" }
-    - { src: "{{ playbook_dir }}/../system/bin/mongos", name: "mongos" }
+- name: Include binaries tasks
+  import_tasks: binaries.yaml
 
-- name: Copy MongoDB shell binaries
-  copy:
-    src: "{{ item.src }}"
-    dest: "/mnt/mongo/bin/{{ item.name }}"
-    mode: '0755'
-    owner: mongodb
-    group: mongodb
-  loop:
-    - { src: "{{ playbook_dir }}/../shell/bin/mongosh", name: "mongosh" }
-    - { src: "{{ playbook_dir }}/../shell/bin/mongosh_crypt_v1.so", name: "mongosh_crypt_v1.so" }
-
-- name: Add /mnt/mongo/bin to PATH
-  lineinfile:
-    path: /etc/profile.d/mongo_path.sh
-    line: 'export PATH=$PATH:/mnt/mongo/bin'
-    create: yes
-    mode: '0755'
-
-- name: Create MongoDB certs directories
-  file:
-    path: /mnt/mongo/certs
-    state: directory
-    owner: mongodb
-    group: mongodb
-    mode: '0700'
-
-- name: Copy mongodb PEM file
-  copy:
-    src: /home/fg/Desktop/tableTopSecrets/mongodb/mongodb.pem
-    dest: /mnt/mongo/certs/mongodb.pem
-    owner: mongodb
-    group: mongodb
-    mode: '0600'
-
-- name: Copy MongoDB keyFile
-  copy:
-    src: /home/fg/Desktop/tableTopSecrets/mongodb/mongodb-keyfile
-    dest: /mnt/mongo/certs/mongodb-keyfile
-    owner: mongodb
-    group: mongodb
-    mode: '0600'
-
-- name: Copy CA PEM file
-  copy:
-    src: /home/fg/Desktop/tableTopSecrets/ca.pem
-    dest: /mnt/mongo/certs/ca.pem
-    owner: mongodb
-    group: mongodb
-    mode: '0600'
-
+- name: Include vault tasks
+  import_tasks: vault.yaml

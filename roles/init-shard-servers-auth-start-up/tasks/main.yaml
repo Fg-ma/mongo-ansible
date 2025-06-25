@@ -8,7 +8,7 @@
   become: true
   ignore_errors: true
   file:
-    path: /mnt/mongo
+    path: /mnt/mongo/shard
     recurse: yes
     owner: mongodb
     group: mongodb
@@ -79,7 +79,7 @@
 - name: Fix ownership of all MongoDB files
   become: true
   file:
-    path: /mnt/mongo
+    path: /mnt/mongo/shard
     recurse: yes
     owner: mongodb
     group: mongodb
@@ -96,7 +96,7 @@
 - name: Fix ownership of all MongoDB files
   become: true
   file:
-    path: /mnt/mongo
+    path: /mnt/mongo/shard
     recurse: yes
     owner: mongodb
     group: mongodb

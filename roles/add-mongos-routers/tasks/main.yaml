@@ -52,7 +52,7 @@
 - name: Fix ownership of all MongoDB files
   become: true
   file:
-    path: /mnt/mongo
+    path: /mnt/mongo/mongos
     recurse: yes
     owner: mongodb
     group: mongodb

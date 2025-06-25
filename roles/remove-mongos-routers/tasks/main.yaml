@@ -45,3 +45,10 @@
     state: absent
   when: not shard_dir.stat.exists and not config_dir.stat.exists
   become: true
+
+- name: Remove /mnt/mongo/vault if shard and mongos directories are missing
+  file:
+    path: /mnt/mongo/vault
+    state: absent
+  when: not shard_dir.stat.exists and not config_dir.stat.exists
+  become: true

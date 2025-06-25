@@ -1,0 +1,16 @@
+- name: Create mongodbcerts group
+  group:
+    name: mongodbcerts
+    state: present
+
+- name: Ensure mongodb user exists
+  user:
+    name: mongodb
+    groups: mongodbcerts
+    state: present
+
+- name: Ensure mongodb user exists
+  user:
+    name: vaultagent
+    groups: mongodbcerts
+    state: present

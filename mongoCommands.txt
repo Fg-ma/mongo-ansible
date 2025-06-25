@@ -24,6 +24,10 @@ UUID=1234-5678  /mnt/mongo  ext4  defaults  0  2
 
 
 // Force clean config server
+sudo systemctl stop vault-agent.service
+sudo systemctl disable vault-agent.service
+sudo rm -rf /etc/sudoers.d/vaultagent-mongo
+sudo pkill -f vault-agent
 sudo systemctl stop mongod-configsvr.service
 sudo systemctl disable mongod-configsvr.service
 sudo pkill -f mongod.*configsvr

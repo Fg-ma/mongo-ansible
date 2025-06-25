@@ -1,0 +1,73 @@
+# bin
+- name: Create /mnt/mongo/bin directory
+  file:
+    path: /mnt/mongo/bin
+    state: directory
+    owner: mongodb
+    group: mongodb
+    mode: "0755"
+
+- name: Add /mnt/mongo/bin to PATH
+  lineinfile:
+    path: /etc/profile.d/mongo_path.sh
+    line: "export PATH=$PATH:/mnt/mongo/bin"
+    create: yes
+    mode: "0755"
+
+# certs
+- name: Set ownership and permissions on /mnt/mongo/certs
+  file:
+    path: /mnt/mongo/certs
+    state: directory
+    owner: mongodb
+    group: mongodbcerts
+    mode: "0730"
+
+- name: Copy ca.pem
+  copy:
+    src: "/home/fg/Desktop/tableTopSecrets/ca.pem"
+    dest: "/mnt/mongo/certs/ca.pem"
+    owner: mongodb
+    group: mongodbcerts
+    mode: "0740"
+
+- name: Copy ca cert into system store
+  become: true
+  copy:
+    remote_src: true
+    src: /mnt/mongo/certs/ca.pem
+    dest: /usr/local/share/ca-certificates/vault-ca.crt
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Update the system ca certificates
+  become: true
+  command: update-ca-certificates
+  args:
+    creates: /etc/ssl/certs/vault-ca.pem
+
+# vault
+- name: Create MongoDB vault directories
+  file:
+    path: /mnt/mongo/vault
+    state: directory
+    owner: vaultagent
+    group: vaultagent
+    mode: "0700"
+
+- name: Create MongoDB vault scripts directory
+  file:
+    path: /mnt/mongo/vault/scripts
+    state: directory
+    owner: vaultagent
+    group: vaultagent
+    mode: "0700"
+
+- name: Create MongoDB vault directories
+  file:
+    path: /mnt/mongo/vault/templates
+    state: directory
+    owner: vaultagent
+    group: vaultagent
+    mode: "0700"
