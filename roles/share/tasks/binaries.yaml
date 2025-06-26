@@ -1,32 +1,49 @@
-- name: Copy MongoDB server binaries
+- name: Check if MongoDB server binaries exist
+  stat:
+    path: "/mnt/mongo/bin/{{ item.name }}"
+  loop:
+    - { name: "mongod" }
+    - { name: "mongos" }
+  register: server_binaries
+
+- name: Copy MongoDB server binaries if not present
   copy:
-    src: "{{ item.src }}"
-    dest: "/mnt/mongo/bin/{{ item.name }}"
+    src: "{{ playbook_dir }}/../system/bin/{{ item.item.name }}"
+    dest: "/mnt/mongo/bin/{{ item.item.name }}"
     mode: "0755"
     owner: mongodb
     group: mongodb
-  loop:
-    - { src: "{{ playbook_dir }}/../system/bin/mongod", name: "mongod" }
-    - { src: "{{ playbook_dir }}/../system/bin/mongos", name: "mongos" }
+  loop: "{{ server_binaries.results }}"
+  when: not item.stat.exists
 
-- name: Copy MongoDB shell binaries
+- name: Check if MongoDB shell binaries exist
+  stat:
+    path: "/mnt/mongo/bin/{{ item.name }}"
+  loop:
+    - { name: "mongosh" }
+    - { name: "mongosh_crypt_v1.so" }
+  register: shell_binaries
+
+- name: Copy MongoDB shell binaries if not present
   copy:
-    src: "{{ item.src }}"
-    dest: "/mnt/mongo/bin/{{ item.name }}"
+    src: "{{ playbook_dir }}/../shell/bin/{{ item.item.name }}"
+    dest: "/mnt/mongo/bin/{{ item.item.name }}"
     mode: "0755"
     owner: mongodb
     group: mongodb
-  loop:
-    - { src: "{{ playbook_dir }}/../shell/bin/mongosh", name: "mongosh" }
-    - {
-        src: "{{ playbook_dir }}/../shell/bin/mongosh_crypt_v1.so",
-        name: "mongosh_crypt_v1.so",
-      }
+  loop: "{{ shell_binaries.results }}"
+  when: not item.stat.exists
 
-- name: Copy Vault binary to target host
+- name: Check if Vault binary exists
+  stat:
+    path: /mnt/mongo/bin/vault
+  register: vault_bin
+
+- name: Copy Vault binary if not present
   copy:
     src: "{{ playbook_dir }}/../vault/vault"
     dest: /mnt/mongo/bin/vault
     mode: "0755"
     owner: vaultagent
     group: vaultagent
+  when: not vault_bin.stat.exists

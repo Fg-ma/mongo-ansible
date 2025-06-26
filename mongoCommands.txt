@@ -35,6 +35,13 @@ sudo rm -rf /etc/systemd/system/mongod-configsvr.service
 sudo rm -rf -R /mnt/mongo/*
 sudo ls -l /mnt/mongo
 
+sudo systemctl stop mongod-configsvr.service
+sudo systemctl disable mongod-configsvr.service
+sudo pkill -f mongod.*configsvr
+sudo rm -rf /etc/systemd/system/mongod-configsvr.service
+sudo rm -rf -R /mnt/mongo/config
+sudo ls -l /mnt/mongo
+
 // Force clean mongos server
 sudo systemctl stop mongos.service
 sudo systemctl disable mongos.service

@@ -7,5 +7,11 @@
 - name: Include binaries tasks
   import_tasks: binaries.yaml
 
+- name: Check if vault-agent service is running
+  shell: systemctl is-active vault-agent
+  register: vault_agent_status
+  ignore_errors: true
+
 - name: Include vault tasks
   import_tasks: vault.yaml
+  when: vault_agent_status.stdout != "active"

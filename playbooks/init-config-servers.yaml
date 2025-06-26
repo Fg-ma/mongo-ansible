@@ -8,8 +8,12 @@
     - role: init-config-servers-server-setup
 
 - name: Set up Config Servers - Init replica
-  hosts: tableTopNode1
+  hosts: localhost
   become: true
+  vars_prompt:
+    - name: vault_token
+      prompt: "Enter Vault access token"
+      private: true
   vars_files:
     - ../vars/config_servers.yaml
   roles:

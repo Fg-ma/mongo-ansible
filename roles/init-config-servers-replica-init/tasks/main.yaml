@@ -7,9 +7,36 @@
     state: started
   loop: "{{ groups['config_servers'] }}"
 
+- name: Include vault_fetcher role
+  include_role:
+    name: vault-fetcher
+  vars:
+    fetcher_secret_var_name: "mongo_admin"
+    fetcher_secret_path: "{{ mongo_admin_secret_path }}"
+    fetcher_vault_token: "{{ vault_token }}"
+    fetcher_vault_url: "{{ vault_url }}"
+    fetcher_ca_path: "{{ ca_path }}"
+
+- name: Include vault_fetcher role
+  include_role:
+    name: vault-fetcher
+  vars:
+    fetcher_secret_var_name: "mongodb_pem_content"
+    fetcher_secret_path: "mongo/data/mongodb/mongodb.pem"
+    fetcher_vault_token: "{{ vault_token }}"
+    fetcher_vault_url: "{{ vault_url }}"
+    fetcher_ca_path: "{{ ca_path }}"
+
+- name: Write mongodb.pem file locally for one-time use
+  copy:
+    dest: "/mnt/mongo/admin/tmp/mongodb.pem"
+    content: "{{ mongodb_pem_content }}"
+    mode: "0600"
+  no_log: true
+
 - name: Initiate replica set
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    {{ playbook_dir }}../shell/bin/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?tls=true&tlsCAFile={{ ca_path }}&tlsCertificateKeyFile=/mnt/mongo/admin/tmp/mongodb.pem&directConnection=true"
     --eval 'rs.initiate({ _id: "{{ repl_set_name }}", configsvr: true, members: [ { _id: 0, host: "{{ primary_node }}:{{ config_port }}" } ] })'
   run_once: true
   register: rs_initiate_result
@@ -18,14 +45,14 @@
 
 - name: Wait for primary election
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    {{ playbook_dir }}../shell/bin/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?tls=true&tlsCAFile={{ ca_path }}&tlsCertificateKeyFile=/mnt/mongo/admin/tmp/mongodb.pem&directConnection=true"
     --quiet --eval 'while(rs.status().myState != 1) { sleep(1000); }'
   run_once: true
   become: true
 
 - name: Add other members to the replica set
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    {{ playbook_dir }}../shell/bin/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ ca_path }}&tlsCertificateKeyFile=/mnt/mongo/admin/tmp/mongodb.pem&directConnection=true"
     --eval 'rs.add({ _id: {{ server_id }}, host: "{{ server }}:{{ config_port }}" })'
   loop: "{{ groups['config_servers'] | map('extract', hostvars, 'ansible_host') | list }}"
   loop_control:
@@ -39,14 +66,22 @@
 
 - name: Disable Mongo telemetry
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    {{ playbook_dir }}../shell/bin/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ ca_path }}&tlsCertificateKeyFile=/mnt/mongo/admin/tmp/mongodb.pem&directConnection=true"
     --eval 'disableTelemetry()'
   run_once: true
   become: true
 
 - name: Create admin user
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
-    --eval 'db.getSiblingDB("admin").createUser({ user: "admin", pwd: "{{ admin_user_password }}", roles: [ { role: "root", db: "admin" } ] })'
+    {{ playbook_dir }}../shell/bin/mongosh "mongodb://{{ primary_node }}:{{ config_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ ca_path }}&tlsCertificateKeyFile=/mnt/mongo/admin/tmp/mongodb.pem&directConnection=true"
+    --eval 'db.getSiblingDB("admin").createUser({ user: "admin", pwd: "{{ mongo_admin.password }}", roles: [ { role: "root", db: "admin" } ] })'
   run_once: true
   become: true
+
+- name: Remove mongodb.pem after use
+  file:
+    path: "/mnt/mongo/admin/tmp/mongodb.pem"
+    state: absent
+  run_once: true
+  become: true
+  no_log: true
