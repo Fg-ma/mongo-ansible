@@ -7,9 +7,20 @@
     state: started
   loop: "{{ groups['new_shard_servers'] }}"
 
+- name: Include vault_fetcher role
+  include_role:
+    name: vault-fetcher
+  vars:
+    fetcher_secret_var_name: "mongo_admin"
+    fetcher_secret_path: "{{ mongo_admin_secret_path }}"
+    fetcher_vault_token: "{{ vault_token }}"
+    fetcher_vault_url: "{{ vault_url }}"
+    fetcher_ca_path: "{{ ca_path }}"
+    fetcher_engine_version: 2
+
 - name: Add new servers to replica
   shell: |
-    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true" --eval '
     const currentConfig = rs.conf();
     let maxId = -1;
     for (const m of currentConfig.members) {

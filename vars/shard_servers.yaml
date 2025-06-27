@@ -1,0 +1,10 @@
+shard_port: 27020
+mongos_port: 27021
+repl_set_name: shardRS1
+cluster_role: shardsvr
+mongo_base_dir: /mnt/mongo
+primary_node: 192.168.122.100
+mongos_node: 192.168.122.100
+mongo_admin_secret_path: "secret/data/mongo/admin"
+vault_url: "https://192.168.1.48:8200"
+ca_path: "/home/fg/Desktop/tableTopSecrets/ca.pem"

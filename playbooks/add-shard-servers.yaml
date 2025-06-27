@@ -2,6 +2,7 @@
   hosts: new_shard_servers
   become: true
   vars_files:
+    - ../vars/share.yaml
     - ../vars/shard_servers.yaml
   roles:
     - role: share
@@ -10,7 +11,12 @@
 - name: Set up new Shard Servers - add to replica set
   hosts: tableTopNode1
   become: true
+  vars_prompt:
+    - name: vault_token
+      prompt: "Enter Vault access token"
+      private: true
   vars_files:
+    - ../vars/share.yaml
     - ../vars/shard_servers.yaml
   roles:
     - role: add-new-shard-servers-add-to-replica-set

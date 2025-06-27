@@ -1,9 +1,9 @@
 storage:
-  dbPath: {{ mongo_data_dir }}
+  dbPath: {{ mongo_base_dir }}/config/data
 
 systemLog:
   destination: file
-  path: {{ mongo_log_dir }}/mongod.log
+  path: {{ mongo_base_dir }}/config/logs/mongod.log
   logAppend: true
 
 net:
@@ -11,8 +11,8 @@ net:
   bindIp: 0.0.0.0
   tls:
     mode: requireTLS
-    certificateKeyFile: {{ mongo_cert_dir }}/mongodb.pem
-    CAFile: {{ mongo_cert_dir }}/ca.pem
+    certificateKeyFile: {{ mongo_base_dir }}/certs/secrets/mongodb.pem
+    CAFile: {{ mongo_base_dir }}/certs/ca.pem
     allowConnectionsWithoutCertificates: false
     allowInvalidCertificates: false
 
@@ -24,5 +24,5 @@ sharding:
 
 security:
   authorization: enabled
-  keyFile: {{ mongo_cert_dir }}/mongodb-keyfile
+  keyFile: {{ mongo_base_dir }}/certs/secrets/mongodb-keyfile
 

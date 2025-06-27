@@ -2,6 +2,7 @@
   hosts: config_servers
   become: true
   vars_files:
+    - ../vars/share.yaml
     - ../vars/mongos_routers.yaml
   roles:
     - role: restart-config-servers

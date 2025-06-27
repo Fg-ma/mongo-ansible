@@ -7,7 +7,7 @@
 
 - name: Kill mongod process (ignoring failure if not running)
   command: |
-    pkill -F "{{ mongo_log_dir }}/mongod.pid"
+    pkill -F "{{ mongo_base_dir }}/shard/logs/mongod.pid"
   ignore_errors: true
   become: true
 
@@ -17,38 +17,53 @@
     state: absent
   become: true
 
-- name: Remove all contents of /mnt/mongo/shard
-  command: rm -rf /mnt/mongo/shard
+- name: Remove all contents of {{ mongo_base_dir }}/shard
+  command: rm -rf "{{ mongo_base_dir }}/shard"
   ignore_errors: true
   become: true
 
 - name: Check if config directory exists
   stat:
-    path: /mnt/mongo/config
+    path: "{{ mongo_base_dir }}/config"
   register: config_dir
 
 - name: Check if mongos directory exists
   stat:
-    path: /mnt/mongo/mongos
+    path: "{{ mongo_base_dir }}/mongos"
   register: mongos_dir
 
-- name: Remove /mnt/mongo/certs if config and mongos directories are missing
+- name: Unmount tmpfs if mounted
+  mount:
+    path: "{{ mongo_base_dir }}/certs/secrets"
+    state: unmounted
+  when: not config_dir.stat.exists and not mongos_dir.stat.exists
+  ignore_errors: true
+
+- name: Remove tmpfs mount from fstab
+  lineinfile:
+    path: /etc/fstab
+    regexp: '^tmpfs\s+{{ mongo_base_dir }}/certs/secrets\s+tmpfs'
+    state: absent
+  when: not config_dir.stat.exists and not mongos_dir.stat.exists
+  notify: Reload systemd daemon (if needed)
+
+- name: Remove {{ mongo_base_dir }}/certs if config and mongos directories are missing
   file:
-    path: /mnt/mongo/certs
+    path: "{{ mongo_base_dir }}/certs"
     state: absent
   when: not config_dir.stat.exists and not mongos_dir.stat.exists
   become: true
 
-- name: Remove /mnt/mongo/bin if config and mongos directories are missing
+- name: Remove {{ mongo_base_dir }}/bin if config and mongos directories are missing
   file:
-    path: /mnt/mongo/bin
+    path: "{{ mongo_base_dir }}/bin"
     state: absent
   when: not config_dir.stat.exists and not mongos_dir.stat.exists
   become: true
 
-- name: Remove /mnt/mongo/vault if shard and mongos directories are missing
+- name: Remove {{ mongo_base_dir }}/vault if shard and mongos directories are missing
   file:
-    path: /mnt/mongo/vault
+    path: "{{ mongo_base_dir }}/vault"
     state: absent
   when: not config_dir.stat.exists and not mongos_dir.stat.exists
   become: true

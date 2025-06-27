@@ -1,16 +1,16 @@
 - name: Kill mongod process (ignoring failure if not running)
   command: |
-    pkill -F "{{ mongo_log_dir }}/mongod.pid"
+    pkill -F "{{ mongo_base_dir }}/config/logs/mongod.pid"
   ignore_errors: true
   become: true
 
 - name: Fix ownership of all MongoDB files
   become: true
   file:
-    path: /mnt/mongo/config
+    path: "{{ mongo_base_dir }}/config"
     recurse: yes
-    owner: mongodb
-    group: mongodb
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
 
 - name: Disable transparent hugepage defragmentation
   become: true
@@ -34,9 +34,9 @@
 - name: Render mongod “auth” config file
   template:
     src: mongod.conf.j2
-    dest: "{{ mongo_conf_dir }}/mongod.conf"
-    owner: mongodb
-    group: mongodb
+    dest: "{{ mongo_base_dir }}/config/conf/mongod.conf"
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
     mode: "0644"
 
 - name: Create systemd service file for MongoDB config server
@@ -51,11 +51,11 @@
       Type=simple
       User=mongodb
       Group=mongodb
-      WorkingDirectory=/mnt/mongo
+      WorkingDirectory={{ mongo_base_dir }}
       LimitNOFILE=64000
       Environment=GLIBC_TUNABLES=glibc.pthread.rseq=0
-      ExecStart={{ mongo_bin }}/mongod \
-        --config "{{ mongo_conf_dir }}/mongod.conf"
+      ExecStart={{ mongo_base_dir }}/bin/mongod \
+        --config "{{ mongo_base_dir }}/config/conf/mongod.conf"
       Restart=always
       RestartSec=5
 
@@ -72,15 +72,15 @@
 
 - name: Remove the temporary no-auth config
   file:
-    path: "{{ mongo_conf_dir }}/mongod-no-auth.conf"
+    path: "{{ mongo_base_dir }}/config/conf/mongod-no-auth.conf"
     state: absent
 
 - name: Fix ownership of all MongoDB files
   become: true
   file:
-    path: /mnt/mongo/config
+    path: "{{ mongo_base_dir }}/config"
     recurse: yes
-    owner: mongodb
-    group: mongodb
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
   notify:
     - Reload systemd

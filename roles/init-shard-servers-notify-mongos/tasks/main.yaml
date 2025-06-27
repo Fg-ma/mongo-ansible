@@ -7,11 +7,22 @@
     state: started
   loop: "{{ groups['shard_servers'] }}"
 
+- name: Include vault_fetcher role
+  include_role:
+    name: vault-fetcher
+  vars:
+    fetcher_secret_var_name: "mongo_admin"
+    fetcher_secret_path: "{{ mongo_admin_secret_path }}"
+    fetcher_vault_token: "{{ vault_token }}"
+    fetcher_vault_url: "{{ vault_url }}"
+    fetcher_ca_path: "{{ ca_path }}"
+    fetcher_engine_version: 2
+
 - name: Add shard to cluster
   become: true
   command: >
-    {{ mongo_bin }}/mongosh
-    "mongodb://admin:{{ admin_user_password }}@{{ mongos_node }}:{{ mongos_port }}/admin?tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    {{ mongo_base_dir }}/bin/mongosh
+    "mongodb://admin:{{ mongo_admin.password }}@{{ mongos_node }}:{{ mongos_port }}/admin?tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true"
     --eval '
       const replSet = "{{ repl_set_name }}";
       const hosts = [

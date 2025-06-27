@@ -2,28 +2,28 @@
   file:
     path: "{{ item }}"
     state: directory
-    owner: mongodb
-    group: mongodb
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
     mode: "0755"
   loop:
-    - "{{ mongo_log_dir }}"
-    - "{{ mongo_conf_dir }}"
+    - "{{ mongo_base_dir }}/mongos/logs"
+    - "{{ mongo_base_dir }}/mongos/conf"
 
 - name: Create empty mongos.pid file
   file:
-    path: "{{ mongo_log_dir }}/mongos.pid"
+    path: "{{ mongo_base_dir }}/mongos/logs/mongos.pid"
     state: touch
-    owner: mongodb
-    group: mongodb
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
     mode: "0644"
   become: true
 
 - name: Render mongod “auth” config file
   template:
     src: mongos.conf.j2
-    dest: "{{ mongo_conf_dir }}/mongos.conf"
-    owner: mongodb
-    group: mongodb
+    dest: "{{ mongo_base_dir }}/mongos/conf/mongos.conf"
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
     mode: "0644"
 
 - name: Create mongos systemd unit
@@ -36,7 +36,7 @@
 
       [Service]
       User=mongodb
-      ExecStart={{ mongo_bin }}/mongos --config {{ mongo_conf_dir }}/mongos.conf
+      ExecStart={{ mongo_base_dir }}/bin/mongos --config {{ mongo_base_dir }}/mongos/conf/mongos.conf
       Restart=always
 
       [Install]
@@ -52,10 +52,10 @@
 - name: Fix ownership of all MongoDB files
   become: true
   file:
-    path: /mnt/mongo/mongos
+    path: "{{ mongo_base_dir }}/mongos"
     recurse: yes
-    owner: mongodb
-    group: mongodb
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
   notify:
     - Reload systemd
 

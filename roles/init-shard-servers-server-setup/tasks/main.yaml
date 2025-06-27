@@ -2,37 +2,37 @@
   file:
     path: "{{ item }}"
     state: directory
-    owner: mongodb
-    group: mongodb
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
     mode: "0755"
   loop:
-    - "{{ mongo_data_dir }}"
-    - "{{ mongo_log_dir }}"
-    - "{{ mongo_conf_dir }}"
+    - "{{ mongo_base_dir }}/shard/data"
+    - "{{ mongo_base_dir }}/shard/logs"
+    - "{{ mongo_base_dir }}/shard/conf"
 
 - name: Create empty mongod.pid file
   file:
-    path: "{{ mongo_log_dir }}/mongod.pid"
+    path: "{{ mongo_base_dir }}/shard/logs/mongod.pid"
     state: touch
-    owner: mongodb
-    group: mongodb
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
     mode: "0644"
   become: true
 
 - name: Render mongod shard “no-auth” config file
   template:
     src: mongod-no-auth.conf.j2
-    dest: "{{ mongo_conf_dir }}/mongod-no-auth.conf"
-    owner: mongodb
-    group: mongodb
+    dest: "{{ mongo_base_dir }}/shard/conf/mongod-no-auth.conf"
+    owner: "{{ mongo_user }}"
+    group: "{{ mongo_group }}"
     mode: "0644"
 
 - name: Start MongoDB without auth
   shell: >
-    {{ mongo_bin }}/mongod
-    --config "{{ mongo_conf_dir }}/mongod-no-auth.conf"
+    {{ mongo_base_dir }}/bin/mongod
+    --config "{{ mongo_base_dir }}/shard/conf/mongod-no-auth.conf"
   args:
-    creates: "{{ mongo_log_dir }}/mongod.log"
+    creates: "{{ mongo_base_dir }}/shard/logs/mongod.log"
 
 - name: Wait for MongoDB port to be open
   wait_for:

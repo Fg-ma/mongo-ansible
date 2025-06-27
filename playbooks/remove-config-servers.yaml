@@ -2,7 +2,12 @@
   hosts: tableTopNode2
   become: true
   run_once: true
+  vars_prompt:
+    - name: vault_token
+      prompt: "Enter Vault access token"
+      private: true
   vars_files:
+    - ../vars/share.yaml
     - ../vars/config_servers.yaml
   roles:
     - role: remove-config-servers-from-replica
@@ -12,6 +17,7 @@
   become: true
   run_once: true
   vars_files:
+    - ../vars/share.yaml
     - ../vars/config_servers.yaml
   roles:
     - role: remove-config-servers-cleanup

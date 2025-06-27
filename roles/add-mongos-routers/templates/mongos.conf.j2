@@ -1,6 +1,6 @@
 systemLog:
   destination: file
-  path: {{ mongo_log_dir }}/mongos.log
+  path: {{ mongo_base_dir }}/mongos/logs/mongos.log
   logAppend: true
 
 net:
@@ -8,8 +8,8 @@ net:
   bindIp: 0.0.0.0
   tls:
     mode: requireTLS
-    certificateKeyFile: {{ mongo_cert_dir }}/mongodb.pem
-    CAFile: {{ mongo_cert_dir }}/ca.pem
+    certificateKeyFile: {{ mongo_base_dir }}/certs/secrets/mongodb.pem
+    CAFile: {{ mongo_base_dir }}/certs/ca.pem
     allowConnectionsWithoutCertificates: false
     allowInvalidCertificates: false
 
@@ -17,8 +17,8 @@ sharding:
   configDB: {{ config_repl_set_name }}/{{ config_server_hosts | join(',') }}
 
 security:
-  keyFile: {{ mongo_cert_dir }}/mongodb-keyfile
+  keyFile: {{ mongo_base_dir }}/certs/secrets/mongodb-keyfile
 
 processManagement:
-  pidFilePath: "{{ mongo_log_dir }}/mongos.pid"
+  pidFilePath: "{{ mongo_base_dir }}/mongos/logs/mongos.pid"
   

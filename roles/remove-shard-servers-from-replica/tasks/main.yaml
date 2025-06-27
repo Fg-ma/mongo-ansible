@@ -1,6 +1,17 @@
+- name: Include vault_fetcher role
+  include_role:
+    name: vault-fetcher
+  vars:
+    fetcher_secret_var_name: "mongo_admin"
+    fetcher_secret_path: "{{ mongo_admin_secret_path }}"
+    fetcher_vault_token: "{{ vault_token }}"
+    fetcher_vault_url: "{{ vault_url }}"
+    fetcher_ca_path: "{{ ca_path }}"
+    fetcher_engine_version: 2
+
 - name: Get current primary host
   shell: |
-    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --quiet --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true" --quiet --eval '
       const status = rs.status();
       print(status.members.find(m => m.stateStr === "PRIMARY").name);
     '
@@ -13,7 +24,7 @@
 
 - name: Remove all shard servers that are not the primary
   shell: |
-    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true" --eval '
     {% for host in groups["remove_shard_servers"] %}
     if ("{{ hostvars[host].ansible_host }}:{{ shard_port }}" !== "{{ current_primary }}") {
       print("Removing: {{ hostvars[host].ansible_host }}:{{ shard_port }}");
@@ -28,7 +39,7 @@
 
 - name: Step down current primary if it's in the remove list
   shell: |
-    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true" --eval '
     try {
       rs.stepDown(60, 60);
     } catch (e) {
@@ -41,14 +52,14 @@
 - name: Wait for new primary to be elected
   shell: |
     sleep 2
-    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true" --quiet --eval 'print(rs.isMaster().primary)'
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password }}@localhost:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true" --quiet --eval 'print(rs.isMaster().primary)'
   when: current_primary in groups["remove_shard_servers"] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '$', ':' ~ shard_port) | list
   register: new_primary_result
   run_once: true
 
 - name: Remove old primary from new primary
   shell: |
-    {{ mongo_bin }}/mongosh "mongodb://admin:{{ admin_user_password }}@{{ new_primary_result.stdout | trim }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem" --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password }}@{{ new_primary_result.stdout | trim }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem" --eval '
     rs.remove("{{ current_primary }}");
     '
   when:

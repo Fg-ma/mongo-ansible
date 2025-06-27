@@ -9,7 +9,7 @@
 
 - name: Initiate replica set
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true"
     --eval 'rs.initiate({ _id: "{{ repl_set_name }}", members: [ { _id: 0, host: "{{ primary_node }}:{{ shard_port }}" } ] })'
   run_once: true
   register: rs_initiate_result
@@ -18,14 +18,14 @@
 
 - name: Wait for primary election
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true"
     --quiet --eval 'while(rs.status().myState != 1) { sleep(1000); }'
   run_once: true
   become: true
 
 - name: Add other members to the replica set
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true"
     --eval 'rs.add({ _id: {{ server_id }}, host: "{{ server }}:{{ shard_port }}" })'
   loop: "{{ groups['shard_servers'] | map('extract', hostvars, 'ansible_host') | list }}"
   loop_control:
@@ -39,14 +39,25 @@
 
 - name: Disable Mongo telemetry
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true"
     --eval 'disableTelemetry()'
   run_once: true
   become: true
 
+- name: Include vault_fetcher role
+  include_role:
+    name: vault-fetcher
+  vars:
+    fetcher_secret_var_name: "mongo_admin"
+    fetcher_secret_path: "{{ mongo_admin_secret_path }}"
+    fetcher_vault_token: "{{ vault_token }}"
+    fetcher_vault_url: "{{ vault_url }}"
+    fetcher_ca_path: "{{ ca_path }}"
+    fetcher_engine_version: 2
+
 - name: Create admin user
   shell: >
-    {{ mongo_bin }}/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_cert_dir }}/ca.pem&tlsCertificateKeyFile={{ mongo_cert_dir }}/mongodb.pem&directConnection=true"
-    --eval 'db.getSiblingDB("admin").createUser({ user: "admin", pwd: "{{ admin_user_password }}", roles: [ { role: "root", db: "admin" } ] })'
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://{{ primary_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true"
+    --eval 'db.getSiblingDB("admin").createUser({ user: "admin", pwd: "{{ mongo_admin.password }}", roles: [ { role: "root", db: "admin" } ] })'
   run_once: true
   become: true

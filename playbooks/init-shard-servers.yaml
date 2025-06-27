@@ -2,6 +2,7 @@
   hosts: shard_servers
   become: true
   vars_files:
+    - ../vars/share.yaml
     - ../vars/shard_servers.yaml
   roles:
     - role: share
@@ -11,6 +12,7 @@
   hosts: tableTopNode1
   become: true
   vars_files:
+    - ../vars/share.yaml
     - ../vars/shard_servers.yaml
   roles:
     - role: init-shard-servers-replica-init
@@ -18,7 +20,12 @@
 - name: Init Shard servers - Auth start up
   hosts: shard_servers
   become: true
+  vars_prompt:
+    - name: vault_token
+      prompt: "Enter Vault access token"
+      private: true
   vars_files:
+    - ../vars/share.yaml
     - ../vars/shard_servers.yaml
   roles:
     - role: init-shard-servers-auth-start-up
@@ -26,7 +33,12 @@
 - name: Init Shard servers - Add to Mongos
   hosts: tableTopNode1
   become: true
+  vars_prompt:
+    - name: vault_token
+      prompt: "Enter Vault access token"
+      private: true
   vars_files:
+    - ../vars/share.yaml
     - ../vars/shard_servers.yaml
   roles:
     - role: init-shard-servers-notify-mongos

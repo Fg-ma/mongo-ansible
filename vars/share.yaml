@@ -1,0 +1,5 @@
+mongo_user: mongodb
+mongo_group: mongodb
+mongo_certs_group: mongodbcerts
+vault_agent_user: vaultagent
+vault_agent_group: vaultagent

@@ -1,61 +1,61 @@
 - name: Create empty vault.pid file
   file:
-    path: "/mnt/mongo/vault/vault.pid"
+    path: "{{ mongo_base_dir }}/vault/vault.pid"
     state: touch
-    owner: vaultagent
-    group: vaultagent
+    owner: "{{ vault_agent_user }}"
+    group: "{{ vault_agent_group }}"
     mode: "0644"
   become: true
 
 - name: Copy Vault role_id
   copy:
     src: "/home/fg/Desktop/vault/mongo-1/role_id"
-    dest: "/mnt/mongo/vault/role_id"
-    owner: vaultagent
-    group: vaultagent
+    dest: "{{ mongo_base_dir }}/certs/secrets/role_id"
+    owner: "{{ vault_agent_user }}"
+    group: "{{ vault_agent_group }}"
     mode: "0600"
 
 - name: Copy Vault secret_id
   copy:
     src: "/home/fg/Desktop/vault/mongo-1/secret_id"
-    dest: "/mnt/mongo/vault/secret_id"
-    owner: vaultagent
-    group: vaultagent
+    dest: "{{ mongo_base_dir }}/certs/secrets/secret_id"
+    owner: "{{ vault_agent_user }}"
+    group: "{{ vault_agent_group }}"
     mode: "0600"
 
 - name: Copy Vault Agent config
   template:
     src: /home/fg/Desktop/vault/mongo-1/agent-config.hcl.j2
-    dest: /mnt/mongo/vault/agent-config.hcl
-    owner: vaultagent
-    group: vaultagent
+    dest: "{{ mongo_base_dir }}/vault/agent-config.hcl"
+    owner: "{{ vault_agent_user }}"
+    group: "{{ vault_agent_group }}"
     mode: "0600"
 
 - name: Copy Vault Agent mongodb.pem template
   copy:
     src: /home/fg/Desktop/vault/mongo-1/mongodb.pem.ctmpl
-    dest: /mnt/mongo/vault/templates/mongodb.pem.ctmpl
-    owner: vaultagent
-    group: vaultagent
+    dest: "{{ mongo_base_dir }}/vault/templates/mongodb.pem.ctmpl"
+    owner: "{{ vault_agent_user }}"
+    group: "{{ vault_agent_group }}"
     mode: "0600"
 
 - name: Copy Vault Agent mongodb-keyfile template
   copy:
     src: /home/fg/Desktop/vault/mongo-1/mongodb-keyfile.ctmpl
-    dest: /mnt/mongo/vault/templates/mongodb-keyfile.ctmpl
-    owner: vaultagent
-    group: vaultagent
+    dest: "{{ mongo_base_dir }}/vault/templates/mongodb-keyfile.ctmpl"
+    owner: "{{ vault_agent_user }}"
+    group: "{{ vault_agent_group }}"
     mode: "0600"
 
 - name: Deploy restart script for MongoDB services
   copy:
-    dest: /mnt/mongo/vault/scripts/restart-mongo-services.sh
+    dest: "{{ mongo_base_dir }}/vault/scripts/restart-mongo-services.sh"
     content: |
       #!/bin/bash
 
       # Fix ownership of rendered certs
       for file in mongodb.pem mongodb-keyfile; do
-          sudo chown mongodb:mongodbcerts "/mnt/mongo/certs/$file"
+          sudo chown mongodb:{{ mongo_certs_group }} "{{ mongo_base_dir }}/certs/secrets/$file"
       done
 
       # Restart MongoDB services
@@ -63,15 +63,15 @@
           systemctl list-units --full -all "$svc.service" | grep -Fq loaded && systemctl restart "$svc"
       done
     owner: root
-    group: vaultagent
+    group: "{{ vault_agent_group }}"
     mode: "0754"
 
-- name: Add sudoers rule for vaultagent to run restart script and chown certs
+- name: Add sudoers rule for {{ vault_agent_user }} to run restart script and chown certs
   copy:
-    dest: /etc/sudoers.d/vaultagent-mongo
+    dest: /etc/sudoers.d/{{ vault_agent_user }}-mongo
     content: |
-      vaultagent ALL=(ALL) NOPASSWD: \
-        /mnt/mongo/vault/scripts/restart-mongo-services.sh, \
+      {{ vault_agent_user }} ALL=(ALL) NOPASSWD: \
+        {{ mongo_base_dir }}/vault/scripts/restart-mongo-services.sh, \
         /bin/systemctl restart mongod-configsvr.service, \
         /bin/systemctl restart mongos.service, \
         /bin/systemctl restart mongod-shardsvr.service, \
@@ -89,10 +89,11 @@
       After=network.target
 
       [Service]
-      User=vaultagent
-      Group=vaultagent
-      ExecStart=/mnt/mongo/bin/vault agent -config=/mnt/mongo/vault/agent-config.hcl
+      User={{ vault_agent_user }}
+      Group={{ vault_agent_group}}
+      ExecStart={{ mongo_base_dir }}/bin/vault agent -config={{ mongo_base_dir }}/vault/agent-config.hcl
       Restart=on-failure
+      PIDFile={{ mongo_base_dir }}/vault/vault.pid
 
       [Install]
       WantedBy=multi-user.target
