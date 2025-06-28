@@ -7,22 +7,6 @@
     mode: "0644"
   become: true
 
-- name: Copy Vault role_id
-  copy:
-    src: "/home/fg/Desktop/vault/mongo-1/role_id"
-    dest: "{{ mongo_base_dir }}/certs/secrets/role_id"
-    owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-    mode: "0600"
-
-- name: Copy Vault secret_id
-  copy:
-    src: "/home/fg/Desktop/vault/mongo-1/secret_id"
-    dest: "{{ mongo_base_dir }}/certs/secrets/secret_id"
-    owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-    mode: "0600"
-
 - name: Copy Vault Agent config
   template:
     src: /home/fg/Desktop/vault/mongo-1/agent-config.hcl.j2
@@ -47,24 +31,14 @@
     group: "{{ vault_agent_group }}"
     mode: "0600"
 
-- name: Deploy restart script for MongoDB services
+- name: Deploy vault credential fetcher
   copy:
     dest: "{{ mongo_base_dir }}/vault/scripts/restart-mongo-services.sh"
-    content: |
-      #!/bin/bash
-
-      # Fix ownership of rendered certs
-      for file in mongodb.pem mongodb-keyfile; do
-          sudo chown mongodb:{{ mongo_certs_group }} "{{ mongo_base_dir }}/certs/secrets/$file"
-      done
-
-      # Restart MongoDB services
-      for svc in mongod-configsvr mongos mongod-shardsvr; do
-          systemctl list-units --full -all "$svc.service" | grep -Fq loaded && systemctl restart "$svc"
-      done
     owner: root
     group: "{{ vault_agent_group }}"
-    mode: "0754"
+    mode: "0750"
+    content: |
+      {{ lookup('file', 'scripts/restart-mongo-services.sh') | indent(6) }}
 
 - name: Add sudoers rule for {{ vault_agent_user }} to run restart script and chown certs
   copy:
@@ -86,7 +60,8 @@
     content: |
       [Unit]
       Description=Vault Agent
-      After=network.target
+      After=network.target fetch-vault-mongo-approle-ids.service
+      Requires=fetch-vault-mongo-approle-ids.service
 
       [Service]
       User={{ vault_agent_user }}
@@ -97,11 +72,44 @@
 
       [Install]
       WantedBy=multi-user.target
-  notify:
-    - Reload systemd
 
 - name: Start and enable Vault Agent service
   systemd:
     name: vault-agent
-    state: started
+    state: stopped
+    enabled: yes
+
+- name: Deploy vault credential fetcher
+  copy:
+    dest: "{{ mongo_base_dir }}/vault/scripts/fetch-vault-mongo-approle-ids.sh"
+    owner: root
+    group: "{{ vault_agent_group }}"
+    mode: "0750"
+    content: |
+      {{ lookup('file', 'scripts/fetch-vault-mongo-approle-ids.sh') | indent(6) }}
+
+- name: Create systemd unit to run the fetcher on boot
+  copy:
+    dest: /etc/systemd/system/fetch-vault-mongo-approle-ids.service
+    content: |
+      [Unit]
+      Description=Vault Mongo approle ids fetcher
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      User={{ vault_agent_user }}
+      Group={{ vault_agent_group}}
+      Type=oneshot
+      ExecStart={{ mongo_base_dir }}/vault/scripts/fetch-vault-mongo-approle-ids.sh
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+  notify:
+    - Reload systemd
+
+- name: Enable fetch-vault-mongo-approle-ids
+  systemd:
+    name: fetch-vault-mongo-approle-ids.service
     enabled: yes

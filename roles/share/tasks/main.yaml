@@ -1,3 +1,6 @@
+- name: Include apt tasks
+  import_tasks: apt.yaml
+
 - name: Include create users tasks
   import_tasks: createUsers.yaml
 
