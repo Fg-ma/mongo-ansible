@@ -24,8 +24,15 @@ UUID=1234-5678  /mnt/mongo  ext4  defaults  0  2
 
 
 // Force clean config server
+sudo systemctl stop fetch-vault-mongo-approle-ids.service
+sudo systemctl disable fetch-vault-mongo-approle-ids.service
+sudo rm -rf /etc/systemd/system/fetch-vault-mongo-approle-ids.service
+sudo systemctl stop fetch-vault-mongo-approle-ids-privileged.service
+sudo systemctl disable fetch-vault-mongo-approle-ids-privileged.service
+sudo rm -rf /etc/systemd/system/fetch-vault-mongo-approle-ids-privileged.service
 sudo systemctl stop vault-agent.service
 sudo systemctl disable vault-agent.service
+sudo rm -rf /etc/systemd/system/vault-agent.service
 sudo rm -rf /etc/sudoers.d/vaultagent-mongo
 sudo pkill -f vault-agent
 sudo systemctl stop mongod-configsvr.service

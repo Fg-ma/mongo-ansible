@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euo pipefail
+
+chown mongodb:mongodbcerts \
+  "{{ mongo_base_dir }}/certs/secrets/role_id" \
+  "{{ mongo_base_dir }}/certs/secrets/secret_id"
+chmod 0600 \
+  "{{ mongo_base_dir }}/certs/secrets/role_id" \
+  "{{ mongo_base_dir }}/certs/secrets/secret_id"
+
+exit 0

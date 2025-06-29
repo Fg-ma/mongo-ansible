@@ -2,7 +2,7 @@
 
 # Fix ownership of rendered certs
 for file in mongodb.pem mongodb-keyfile; do
-  sudo chown mongodb:{{ mongo_certs_group }} "{{ mongo_base_dir }}/certs/secrets/$file"
+  sudo chown {{ mongo_user }}:{{ mongo_certs_group }} "{{ mongo_base_dir }}/certs/secrets/$file"
 done
 
 # Restart MongoDB services
