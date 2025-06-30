@@ -1,10 +1,8 @@
 mongos_port: 27021
 config_repl_set_name: cfgRS1
-mongo_base_dir: /mnt/mongo
 config_server_hosts:
   - 192.168.122.100:27019
   - 192.168.122.101:27019
   - 192.168.122.102:27019
 mongo_admin_secret_path: "secret/data/mongo/admin"
 vault_url: "https://192.168.1.48:8200"
-ca_path: "/home/fg/Desktop/tableTopSecrets/ca.pem"

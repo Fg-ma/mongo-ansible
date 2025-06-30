@@ -11,8 +11,8 @@ net:
   bindIp: 0.0.0.0
   tls:
     mode: requireTLS
-    certificateKeyFile: {{ mongo_base_dir }}/certs/secrets/mongodb.pem
-    CAFile: {{ mongo_base_dir }}/certs/ca.pem
+    certificateKeyFile: {{ vault_dir }}/secrets/mongo/mongodb.pem
+    CAFile: {{ vault_dir }}/authorities/ca.pem
     allowConnectionsWithoutCertificates: false
     allowInvalidCertificates: false
 

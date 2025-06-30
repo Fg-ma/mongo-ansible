@@ -1,42 +1,42 @@
 - name: Create empty vault-agent.pid file
   file:
-    path: "{{ mongo_base_dir }}/vault/vault-agent.pid"
+    path: "{{ vault_dir }}/agents/mongo/vault-agent.pid"
     state: touch
-    owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-    mode: "0644"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0640"
   become: true
 
 - name: Copy Vault Agent config
   template:
-    src: "{{ playbook_dir }}/../vault/agents/agent-config.hcl.j2"
-    dest: "{{ mongo_base_dir }}/vault/agent-config.hcl"
-    owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-    mode: "0600"
+    src: "{{ playbook_dir }}/../vault/agents/mongo-agent-config.hcl.j2"
+    dest: "{{ vault_dir }}/agents/mongo/mongo-agent-config.hcl"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0400"
 
 - name: Copy Vault Agent mongodb.pem template
   copy:
     src: "{{ playbook_dir }}/../vault/templates/mongodb.pem.ctmpl"
-    dest: "{{ mongo_base_dir }}/vault/templates/mongodb.pem.ctmpl"
-    owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-    mode: "0600"
+    dest: "{{ vault_dir }}/templates/mongo/mongodb.pem.ctmpl"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0400"
 
 - name: Copy Vault Agent mongodb-keyfile template
   copy:
     src: "{{ playbook_dir }}/../vault/templates/mongodb-keyfile.ctmpl"
-    dest: "{{ mongo_base_dir }}/vault/templates/mongodb-keyfile.ctmpl"
-    owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-    mode: "0600"
+    dest: "{{ vault_dir }}/templates/mongo/mongodb-keyfile.ctmpl"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0400"
 
-- name: Add sudoers rule for {{ vault_agent_user }} to run restart script and chown certs
+- name: Add sudoers rule for {{ vault_agent_user }} to run restart script
   copy:
     dest: /etc/sudoers.d/{{ vault_agent_user }}-mongo
     content: |
       {{ vault_agent_user }} ALL=(ALL) NOPASSWD: \
-        {{ mongo_base_dir }}/vault/scripts/restart-mongo-services.sh, \
+        {{ vault_dir }}/scripts/mongo/restart-mongo-services.sh, \
         /bin/systemctl restart mongod-configsvr.service, \
         /bin/systemctl restart mongos.service, \
         /bin/systemctl restart mongod-shardsvr.service
@@ -47,10 +47,10 @@
 - name: Install fetch-vault-mongo-approle-ids script
   template:
     src: fetch-vault-mongo-approle-ids.sh.j2
-    dest: "{{ mongo_base_dir }}/vault/scripts/fetch-vault-mongo-approle-ids.sh"
-    mode: "0750"
-    owner: root
-    group: "{{ vault_agent_group }}"
+    dest: "{{ vault_dir }}/scripts/mongo/fetch-vault-mongo-approle-ids.sh"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0550"
 
 - name: Create systemd unit to run the fetcher on boot
   copy:
@@ -62,38 +62,10 @@
       Wants=network-online.target
 
       [Service]
-      User={{ vault_agent_user }}
-      Group={{ vault_agent_group }}
-      Type=oneshot
-      ExecStart={{ mongo_base_dir }}/vault/scripts/fetch-vault-mongo-approle-ids.sh
-      RemainAfterExit=yes
-
-      [Install]
-      WantedBy=multi-user.target
-  notify: Reload systemd
-
-- name: Install fetch-vault-mongo-approle-ids-privileged script
-  template:
-    src: fetch-vault-mongo-approle-ids-privileged.sh.j2
-    dest: "{{ mongo_base_dir }}/vault/scripts/fetch-vault-mongo-approle-ids-privileged.sh"
-    mode: "0750"
-    owner: root
-    group: "{{ vault_agent_group }}"
-
-- name: Create fetch-vault-mongo-approle-ids-privileged.service
-  copy:
-    dest: /etc/systemd/system/fetch-vault-mongo-approle-ids-privileged.service
-    content: |
-      [Unit]
-      Description=Fix perms on fetched IDs and start vault-agent
-      Wants=fetch-vault-mongo-approle-ids.service
-      After=fetch-vault-mongo-approle-ids.service
-
-      [Service]
       User=root
       Group=root
       Type=oneshot
-      ExecStart={{ mongo_base_dir }}/vault/scripts/fetch-vault-mongo-approle-ids-privileged.sh
+      ExecStart={{ vault_dir }}/scripts/mongo/fetch-vault-mongo-approle-ids.sh
       RemainAfterExit=yes
 
       [Install]
@@ -102,27 +74,27 @@
 
 - name: Install restart-mongo-services script
   template:
-    src: fetch-vault-mongo-approle-ids.sh.j2
-    dest: "{{ mongo_base_dir }}/vault/scripts/restart-mongo-services.sh"
-    mode: "0750"
-    owner: root
-    group: "{{ vault_agent_group }}"
+    src: restart-mongo-services.sh.j2
+    dest: "{{ vault_dir }}/scripts/mongo/restart-mongo-services.sh"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0550"
 
-- name: Create systemd service file for vault agent
+- name: Create systemd service file for mongo vault agent
   copy:
-    dest: /etc/systemd/system/vault-agent.service
+    dest: /etc/systemd/system/mongo-vault-agent.service
     content: |
       [Unit]
       Description=Vault Agent
-      After=network.target fetch-vault-mongo-approle-ids-privileged.service
-      Requires=fetch-vault-mongo-approle-ids-privileged.service
+      After=network.target fetch-vault-mongo-approle-ids.service
+      Requires=fetch-vault-mongo-approle-ids.service
 
       [Service]
-      User={{ vault_agent_user }}
-      Group={{ vault_agent_group}}
-      ExecStart={{ mongo_base_dir }}/bin/vault agent -config={{ mongo_base_dir }}/vault/agent-config.hcl
+      User={{ mongo_vault_agent_user }}
+      Group={{ mongo_vault_agent_group }}
+      ExecStart={{ vault_dir }}/bin/vault agent -config={{ vault_dir }}/agents/mongo/mongo-agent-config.hcl
       Restart=on-failure
-      PIDFile={{ mongo_base_dir }}/vault/vault-agent.pid
+      PIDFile={{ vault_dir }}/agents/mongo/mongo-vault-agent.pid
 
       [Install]
       WantedBy=multi-user.target
@@ -140,14 +112,8 @@
   register: fetcher_status
   failed_when: fetcher_status.status.Result != "success"
 
-- name: Enable & start fetch-vault-mongo-approle-ids-privileged
+- name: Start and enable Mongo Vault Agent service
   systemd:
-    name: fetch-vault-mongo-approle-ids-privileged.service
-    state: started
-    enabled: yes
-
-- name: Start and enable Vault Agent service
-  systemd:
-    name: vault-agent
+    name: mongo-vault-agent
     state: started
     enabled: yes

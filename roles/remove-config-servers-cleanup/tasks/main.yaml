@@ -32,20 +32,20 @@
     path: "{{ mongo_base_dir }}/mongos"
   register: mongos_dir
 
-- name: Unmount tmpfs if mounted
-  mount:
-    path: "{{ mongo_base_dir }}/certs/secrets"
-    state: unmounted
-  when: not shard_dir.stat.exists and not mongos_dir.stat.exists
-  ignore_errors: true
+# - name: Unmount tmpfs if mounted
+#   mount:
+#     path: "{{ mongo_base_dir }}/certs/secrets"
+#     state: unmounted
+#   when: not shard_dir.stat.exists and not mongos_dir.stat.exists
+#   ignore_errors: true
 
-- name: Remove tmpfs mount from fstab
-  lineinfile:
-    path: /etc/fstab
-    regexp: '^tmpfs\s+{{ mongo_base_dir }}/certs/secrets\s+tmpfs'
-    state: absent
-  when: not shard_dir.stat.exists and not mongos_dir.stat.exists
-  notify: Reload systemd daemon (if needed)
+# - name: Remove tmpfs mount from fstab
+#   lineinfile:
+#     path: /etc/fstab
+#     regexp: '^tmpfs\s+{{ mongo_base_dir }}/certs/secrets\s+tmpfs'
+#     state: absent
+#   when: not shard_dir.stat.exists and not mongos_dir.stat.exists
+#   notify: Reload systemd daemon (if needed)
 
 - name: Remove {{ mongo_base_dir }}/certs if shard and mongos directories are missing
   file:

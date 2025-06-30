@@ -10,9 +10,9 @@
   copy:
     src: "{{ playbook_dir }}/../system/bin/{{ item.item.name }}"
     dest: "{{ mongo_base_dir }}/bin/{{ item.item.name }}"
-    mode: "0755"
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
+    mode: "0550"
   loop: "{{ server_binaries.results }}"
   when: not item.stat.exists
 
@@ -28,22 +28,8 @@
   copy:
     src: "{{ playbook_dir }}/../shell/bin/{{ item.item.name }}"
     dest: "{{ mongo_base_dir }}/bin/{{ item.item.name }}"
-    mode: "0755"
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
+    mode: "0550"
   loop: "{{ shell_binaries.results }}"
   when: not item.stat.exists
-
-- name: Check if Vault binary exists
-  stat:
-    path: "{{ mongo_base_dir }}/bin/vault"
-  register: vault_bin
-
-- name: Copy Vault binary if not present
-  copy:
-    src: "{{ playbook_dir }}/../vault/vault"
-    dest: "{{ mongo_base_dir }}/bin/vault"
-    mode: "0755"
-    owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-  when: not vault_bin.stat.exists

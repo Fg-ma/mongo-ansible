@@ -1,6 +1,3 @@
-- name: Include apt tasks
-  import_tasks: apt.yaml
-
 - name: Include create users tasks
   import_tasks: createUsers.yaml
 
@@ -10,11 +7,11 @@
 - name: Include binaries tasks
   import_tasks: binaries.yaml
 
-- name: Check if vault-agent service is running
-  shell: systemctl is-active vault-agent
-  register: vault_agent_status
+- name: Check if mongo-vault-agent service is running
+  shell: systemctl is-active mongo-vault-agent
+  register: mongo_vault_agent_status
   ignore_errors: true
 
 - name: Include vault tasks
   import_tasks: vault.yaml
-  when: vault_agent_status.stdout != "active"
+  when: mongo_vault_agent_status.stdout != "active"

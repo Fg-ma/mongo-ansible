@@ -4,7 +4,7 @@
     state: directory
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
-    mode: "0755"
+    mode: "0750"
   loop:
     - "{{ mongo_base_dir }}/mongos/logs"
     - "{{ mongo_base_dir }}/mongos/conf"
@@ -15,7 +15,7 @@
     state: touch
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
-    mode: "0644"
+    mode: "0640"
   become: true
 
 - name: Render mongod “auth” config file
@@ -24,7 +24,7 @@
     dest: "{{ mongo_base_dir }}/mongos/conf/mongos.conf"
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
-    mode: "0644"
+    mode: "0440"
 
 - name: Create mongos systemd unit
   copy:
@@ -32,10 +32,12 @@
     content: |
       [Unit]
       Description=MongoDB Shard Router
-      After=network.target
+      After=network.target vault-agent.service
+      Requires=vault-agent.service
 
       [Service]
-      User=mongodb
+      User="{{ mongo_user }}"
+      Group="{{ mongo_group }}"
       ExecStart={{ mongo_base_dir }}/bin/mongos --config {{ mongo_base_dir }}/mongos/conf/mongos.conf
       Restart=always
 

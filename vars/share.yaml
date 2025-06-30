@@ -1,8 +1,15 @@
+mongo_base_dir: /mnt/mongo
+vault_dir: /mnt/vault
+ca_path: "/home/fg/Desktop/tableTopSecrets/ca.pem"
 mongo_user: mongodb
 mongo_group: mongodb
-mongo_certs_group: mongodbcerts
+mongo_vault_agent_user: mongovaultagent
+mongo_vault_agent_group: mongovaultagent
 vault_agent_user: vaultagent
 vault_agent_group: vaultagent
+vault_agent_navigational_group: navigationalvaultagent
+vault_agent_authorities_group: authoritiesvaultagent
+vault_agent_bin_group: binvaultagent
 vault_ip: 192.168.1.48
 vault_server_port: 4242
 hashi_vault_port: 8200

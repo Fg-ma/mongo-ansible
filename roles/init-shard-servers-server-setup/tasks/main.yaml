@@ -4,7 +4,7 @@
     state: directory
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
-    mode: "0755"
+    mode: "0750"
   loop:
     - "{{ mongo_base_dir }}/shard/data"
     - "{{ mongo_base_dir }}/shard/logs"
@@ -16,7 +16,7 @@
     state: touch
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
-    mode: "0644"
+    mode: "0640"
   become: true
 
 - name: Render mongod shard “no-auth” config file
@@ -25,7 +25,7 @@
     dest: "{{ mongo_base_dir }}/shard/conf/mongod-no-auth.conf"
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
-    mode: "0644"
+    mode: "0440"
 
 - name: Start MongoDB without auth
   shell: >

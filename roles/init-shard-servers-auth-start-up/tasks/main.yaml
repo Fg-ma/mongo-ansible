@@ -38,7 +38,7 @@
     dest: "{{ mongo_base_dir }}/shard/conf/mongod.conf"
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
-    mode: "0644"
+    mode: "0440"
 
 - name: Create systemd service file for MongoDB shard server
   copy:
@@ -46,12 +46,13 @@
     content: |
       [Unit]
       Description=MongoDB Shard Server
-      After=network.target
+      After=network.target vault-agent.service
+      Requires=vault-agent.service
 
       [Service]
       Type=simple
-      User=mongodb
-      Group=mongodb
+      User="{{ mongo_user }}"
+      Group="{{ mongo_group }}"
       WorkingDirectory={{ mongo_base_dir }}
       LimitNOFILE=64000
       Environment=GLIBC_TUNABLES=glibc.pthread.rseq=0

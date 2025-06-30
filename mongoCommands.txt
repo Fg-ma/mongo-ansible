@@ -9,7 +9,7 @@ sudo -u mongodb bin/mongosh "mongodb://admin:password@192.168.122.100:27021/admi
 
 
 
-// Format new node
+// Format new mongo node
 - Make xfs partition
 sudo apt update
 sudo apt install -y parted xfsprogs
@@ -19,7 +19,7 @@ sudo parted -a opt /dev/sdb mkpart primary xfs 0% 100%
 sudo mkfs.xfs /dev/sdb1
 lsblk -f
 sudo nano /etc/fstab
-UUID=1234-5678  /mnt/mongo  ext4  defaults  0  2
+UUID=1234-5678  /mnt/mongo  xfs  defaults  0  2
 
 
 
@@ -27,14 +27,12 @@ UUID=1234-5678  /mnt/mongo  ext4  defaults  0  2
 sudo systemctl stop fetch-vault-mongo-approle-ids.service
 sudo systemctl disable fetch-vault-mongo-approle-ids.service
 sudo rm -rf /etc/systemd/system/fetch-vault-mongo-approle-ids.service
-sudo systemctl stop fetch-vault-mongo-approle-ids-privileged.service
-sudo systemctl disable fetch-vault-mongo-approle-ids-privileged.service
-sudo rm -rf /etc/systemd/system/fetch-vault-mongo-approle-ids-privileged.service
-sudo systemctl stop vault-agent.service
-sudo systemctl disable vault-agent.service
-sudo rm -rf /etc/systemd/system/vault-agent.service
+sudo systemctl stop mongo-vault-agent.service
+sudo systemctl disable mongo-vault-agent.service
+sudo rm -rf /etc/systemd/system/mongo-vault-agent.service
 sudo rm -rf /etc/sudoers.d/vaultagent-mongo
 sudo pkill -f vault-agent
+
 sudo systemctl stop mongod-configsvr.service
 sudo systemctl disable mongod-configsvr.service
 sudo pkill -f mongod.*configsvr

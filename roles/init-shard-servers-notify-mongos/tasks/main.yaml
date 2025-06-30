@@ -22,7 +22,7 @@
   become: true
   command: >
     {{ mongo_base_dir }}/bin/mongosh
-    "mongodb://admin:{{ mongo_admin.password }}@{{ mongos_node }}:{{ mongos_port }}/admin?tls=true&tlsCAFile={{ mongo_base_dir }}/certs/ca.pem&tlsCertificateKeyFile={{ mongo_base_dir }}/certs/secrets/mongodb.pem&directConnection=true"
+    "mongodb://admin:{{ mongo_admin.password }}@{{ mongos_node }}:{{ mongos_port }}/admin?tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb.pem&directConnection=true"
     --eval '
       const replSet = "{{ repl_set_name }}";
       const hosts = [

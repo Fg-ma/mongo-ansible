@@ -5,94 +5,44 @@
     state: directory
     owner: "{{ mongo_user }}"
     group: "{{ mongo_group }}"
-    mode: "0755"
+    mode: "0750"
 
 - name: Add {{ mongo_base_dir }}/bin to PATH
   lineinfile:
     path: /etc/profile.d/mongo_path.sh
     line: "export PATH=$PATH:{{ mongo_base_dir }}/bin"
     create: yes
-    mode: "0755"
-
-# certs
-- name: Set ownership and permissions on {{ mongo_base_dir }}/certs
-  file:
-    path: "{{ mongo_base_dir }}/certs"
-    state: directory
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_certs_group }}"
     mode: "0750"
 
-- name: Set ownership and permissions on {{ mongo_base_dir }}/certs/secrets
+# Vault
+- name: Create {{ vault_dir }}/secrets/mongo directory
   file:
-    path: "{{ mongo_base_dir }}/certs/secrets"
-    state: directory
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_certs_group }}"
-    mode: "0770"
-
-- name: Add tmpfs mount to fstab (if not already present)
-  lineinfile:
-    path: /etc/fstab
-    regexp: '^tmpfs\s+{{ mongo_base_dir }}/certs/secrets\s+tmpfs'
-    line: "tmpfs {{ mongo_base_dir }}/certs/secrets tmpfs nodev,nosuid,noexec,size=32K 0 0"
-    state: present
-    create: yes
-    backup: yes
-
-- name: Ensure tmpfs is mounted
-  mount:
-    path: "{{ mongo_base_dir }}/certs/secrets"
-    src: tmpfs
-    fstype: tmpfs
-    opts: nodev,nosuid,noexec,size=32K
-    state: mounted
-
-- name: Copy ca.pem
-  copy:
-    src: "{{ ca_path }}"
-    dest: "{{ mongo_base_dir }}/certs/ca.pem"
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_certs_group }}"
-    mode: "0740"
-
-- name: Copy ca cert into system store
-  become: true
-  copy:
-    remote_src: true
-    src: "{{ mongo_base_dir }}/certs/ca.pem"
-    dest: /usr/local/share/ca-certificates/vault-ca.crt
-    owner: root
-    group: root
-    mode: "0644"
-
-- name: Update the system ca certificates
-  become: true
-  command: update-ca-certificates
-  args:
-    creates: /etc/ssl/certs/vault-ca.pem
-
-# vault
-- name: Create MongoDB vault directories
-  file:
-    path: "{{ mongo_base_dir }}/vault"
+    path: "{{ vault_dir }}/secrets/mongo"
     state: directory
     owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-    mode: "0700"
+    group: "{{ vault_agent_navigational_group }}"
+    mode: "0710"
 
-- name: Create MongoDB vault scripts directory
+- name: Create {{ vault_dir }}/scripts/mongo directory
   file:
-    path: "{{ mongo_base_dir }}/vault/scripts"
+    path: "{{ vault_dir }}/scripts/mongo"
     state: directory
     owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-    mode: "0700"
+    group: "{{ vault_agent_navigational_group }}"
+    mode: "0710"
 
-- name: Create MongoDB vault directories
+- name: Create {{ vault_dir }}/templates/mongo directory
   file:
-    path: "{{ mongo_base_dir }}/vault/templates"
+    path: "{{ vault_dir }}/templates/mongo"
     state: directory
     owner: "{{ vault_agent_user }}"
-    group: "{{ vault_agent_group }}"
-    mode: "0700"
+    group: "{{ vault_agent_navigational_group }}"
+    mode: "0710"
+
+- name: Create {{ vault_dir }}/agents/mongo directory
+  file:
+    path: "{{ vault_dir }}/agents/mongo"
+    state: directory
+    owner: "{{ vault_agent_user }}"
+    group: "{{ vault_agent_navigational_group }}"
+    mode: "0710"

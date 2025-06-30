@@ -7,4 +7,4 @@
           'secret={{ fetcher_secret_path }} token={{ fetcher_vault_token }} url={{ fetcher_vault_url }} cacert={{ fetcher_ca_path }} engine_version={{ fetcher_engine_version }}'
         )
       }}
-  # no_log: true
+  no_log: true
