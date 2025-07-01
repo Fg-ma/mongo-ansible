@@ -1,5 +1,5 @@
 - name: Set up Config Servers - Remove from replica
-  hosts: tableTopNode2
+  hosts: tableTopNode1
   become: true
   run_once: true
   vars_prompt:

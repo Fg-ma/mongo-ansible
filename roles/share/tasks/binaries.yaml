@@ -10,8 +10,8 @@
   copy:
     src: "{{ playbook_dir }}/../system/bin/{{ item.item.name }}"
     dest: "{{ mongo_base_dir }}/bin/{{ item.item.name }}"
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0550"
   loop: "{{ server_binaries.results }}"
   when: not item.stat.exists
@@ -28,8 +28,8 @@
   copy:
     src: "{{ playbook_dir }}/../shell/bin/{{ item.item.name }}"
     dest: "{{ mongo_base_dir }}/bin/{{ item.item.name }}"
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0550"
   loop: "{{ shell_binaries.results }}"
   when: not item.stat.exists

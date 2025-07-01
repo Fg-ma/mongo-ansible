@@ -3,8 +3,8 @@
   file:
     path: "{{ mongo_base_dir }}/bin"
     state: directory
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0750"
 
 - name: Add {{ mongo_base_dir }}/bin to PATH
@@ -19,7 +19,7 @@
   file:
     path: "{{ vault_dir }}/secrets/mongo"
     state: directory
-    owner: "{{ vault_agent_user }}"
+    owner: "{{ mongo_vault_agent_user }}"
     group: "{{ vault_agent_navigational_group }}"
     mode: "0710"
 
@@ -27,7 +27,7 @@
   file:
     path: "{{ vault_dir }}/scripts/mongo"
     state: directory
-    owner: "{{ vault_agent_user }}"
+    owner: "{{ mongo_vault_agent_user }}"
     group: "{{ vault_agent_navigational_group }}"
     mode: "0710"
 
@@ -35,7 +35,7 @@
   file:
     path: "{{ vault_dir }}/templates/mongo"
     state: directory
-    owner: "{{ vault_agent_user }}"
+    owner: "{{ mongo_vault_agent_user }}"
     group: "{{ vault_agent_navigational_group }}"
     mode: "0710"
 
@@ -43,6 +43,6 @@
   file:
     path: "{{ vault_dir }}/agents/mongo"
     state: directory
-    owner: "{{ vault_agent_user }}"
+    owner: "{{ mongo_vault_agent_user }}"
     group: "{{ vault_agent_navigational_group }}"
     mode: "0710"

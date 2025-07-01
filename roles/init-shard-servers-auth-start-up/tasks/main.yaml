@@ -10,8 +10,8 @@
   file:
     path: "{{ mongo_base_dir }}/shard"
     recurse: yes
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
 
 - name: Disable transparent hugepage defragmentation
   become: true
@@ -36,8 +36,8 @@
   template:
     src: mongod.conf.j2
     dest: "{{ mongo_base_dir }}/shard/conf/mongod.conf"
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0440"
 
 - name: Create systemd service file for MongoDB shard server
@@ -46,13 +46,13 @@
     content: |
       [Unit]
       Description=MongoDB Shard Server
-      After=network.target vault-agent.service
-      Requires=vault-agent.service
+      After=network.target mongo-vault-agent.service
+      Requires=mongo-vault-agent.service
 
       [Service]
       Type=simple
-      User="{{ mongo_user }}"
-      Group="{{ mongo_group }}"
+      User={{ mongo_vault_agent_user }}
+      Group={{ mongo_vault_agent_group }}
       WorkingDirectory={{ mongo_base_dir }}
       LimitNOFILE=64000
       Environment=GLIBC_TUNABLES=glibc.pthread.rseq=0
@@ -65,6 +65,21 @@
       WantedBy=multi-user.target
   notify:
     - Reload systemd
+
+- name: Force systemd reexec and daemon reload
+  shell: |
+    systemctl daemon-reexec
+    systemctl daemon-reload
+
+- name: Check if mongod-shardsvr.service unit exists
+  stat:
+    path: /etc/systemd/system/mongod-shardsvr.service
+  register: mongod_unit
+
+- name: Reset failed mongod-shardsvr if loaded
+  command: systemctl reset-failed mongod-shardsvr.service
+  when: mongod_unit.stat.exists
+  ignore_errors: true
 
 - name: Enable and start MongoDB shard server service
   systemd:
@@ -82,8 +97,8 @@
   file:
     path: "{{ mongo_base_dir }}/shard"
     recurse: yes
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
   notify:
     - Reload systemd
 
@@ -99,8 +114,8 @@
   file:
     path: "{{ mongo_base_dir }}/shard"
     recurse: yes
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
   notify:
     - Reload systemd
 

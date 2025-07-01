@@ -53,7 +53,7 @@ while true; do
 
     echo "$ROLE_ID" > {{ vault_dir }}/secrets/mongo/role_id
     echo "$SECRET_ID" > {{ vault_dir }}/secrets/mongo/secret_id
-    chown {{ mongo_user }}:{{ mongo_vault_agent_group }} \
+    chown {{ mongo_vault_agent_group }}:{{ mongo_vault_agent_group }} \
       "{{ vault_dir }}/secrets/mongo/role_id" \
       "{{ vault_dir }}/secrets/mongo/secret_id"
     chmod 0640 \

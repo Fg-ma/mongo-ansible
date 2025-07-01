@@ -1,11 +1,11 @@
 // Config server login
-sudo -u mongodb bin/mongosh "mongodb://admin:password@192.168.122.100:27019,192.168.122.101:27019,192.168.122.102:27019/admin?replicaSet=cfgRS1&tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/secrets/mongodb.pem"
+sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@192.168.122.100:27019,192.168.122.101:27019,192.168.122.102:27019/admin?replicaSet=cfgRS1&tls=true&tlsCAFile=/mnt/vault/authorities/ca.pem&tlsCertificateKeyFile=/mnt/vault/secrets/mongo/mongodb.pem"
 
 // Shard server login
-sudo -u mongodb bin/mongosh "mongodb://admin:password@192.168.122.100:27020,192.168.122.101:27020,192.168.122.102:27020/admin?replicaSet=shardRS1&tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/secrets/mongodb.pem"
+sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@192.168.122.100:27020,192.168.122.101:27020,192.168.122.102:27020/admin?replicaSet=shardRS1&tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/secrets/mongodb.pem"
 
 // Mongos server login
-sudo -u mongodb bin/mongosh "mongodb://admin:password@192.168.122.100:27021/admin?tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/secrets/mongodb.pem"
+sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@192.168.122.100:27021/admin?tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/secrets/mongodb.pem"
 
 
 

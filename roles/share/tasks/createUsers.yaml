@@ -1,14 +1,3 @@
-- name: Ensure mongo group exists
-  group:
-    name: "{{ mongo_group }}"
-    state: present
-
-- name: Ensure mongo user exists
-  user:
-    name: "{{ mongo_user }}"
-    groups: "{{ mongo_group }}"
-    state: present
-
 - name: Ensure mongo vault agent group exists
   group:
     name: "{{ mongo_vault_agent_group }}"

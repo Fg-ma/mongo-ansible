@@ -2,8 +2,8 @@
   file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0750"
   loop:
     - "{{ mongo_base_dir }}/config/data"
@@ -14,8 +14,8 @@
   file:
     path: "{{ mongo_base_dir }}/config/logs/mongod.pid"
     state: touch
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0640"
   become: true
 
@@ -23,8 +23,8 @@
   template:
     src: mongod-no-auth.conf.j2
     dest: "{{ mongo_base_dir }}/config/conf/mongod-no-auth.conf"
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0440"
 
 - name: Start MongoDB without auth

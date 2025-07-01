@@ -20,7 +20,7 @@
 
 - name: Add new servers to replica
   shell: |
-    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password }}@localhost:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb.pem&directConnection=true" --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@localhost:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb.pem&directConnection=true" --eval '
     const currentConfig = rs.conf();
     let maxId = -1;
     for (const m of currentConfig.members) {
@@ -29,7 +29,7 @@
 
     {% for host in groups["new_config_servers"] %}
     maxId++;
-    rs.add({ _id: maxId, host: "{{ hostvars[host].ansible_host }}:{{ config_port }}" });
+    rs.add({ _id: maxId, host: "{{ hostvars[host].ansible_host }}:{{ config_port }}", priority: 1 });
     sleep(1000);
     {% endfor %}
     '

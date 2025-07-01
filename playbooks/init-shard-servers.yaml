@@ -11,6 +11,10 @@
 - name: Init Shard servers - Init Replica Set
   hosts: tableTopNode1
   become: true
+  vars_prompt:
+    - name: vault_token
+      prompt: "Enter Vault access token"
+      private: true
   vars_files:
     - ../vars/share.yaml
     - ../vars/shard_servers.yaml
@@ -20,10 +24,6 @@
 - name: Init Shard servers - Auth start up
   hosts: shard_servers
   become: true
-  vars_prompt:
-    - name: vault_token
-      prompt: "Enter Vault access token"
-      private: true
   vars_files:
     - ../vars/share.yaml
     - ../vars/shard_servers.yaml

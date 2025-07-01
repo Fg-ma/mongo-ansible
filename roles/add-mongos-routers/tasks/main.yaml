@@ -2,8 +2,8 @@
   file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0750"
   loop:
     - "{{ mongo_base_dir }}/mongos/logs"
@@ -13,8 +13,8 @@
   file:
     path: "{{ mongo_base_dir }}/mongos/logs/mongos.pid"
     state: touch
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0640"
   become: true
 
@@ -22,8 +22,8 @@
   template:
     src: mongos.conf.j2
     dest: "{{ mongo_base_dir }}/mongos/conf/mongos.conf"
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
     mode: "0440"
 
 - name: Create mongos systemd unit
@@ -32,12 +32,12 @@
     content: |
       [Unit]
       Description=MongoDB Shard Router
-      After=network.target vault-agent.service
-      Requires=vault-agent.service
+      After=network.target mongo-vault-agent.service
+      Requires=mongo-vault-agent.service
 
       [Service]
-      User="{{ mongo_user }}"
-      Group="{{ mongo_group }}"
+      User={{ mongo_vault_agent_user }}
+      Group={{ mongo_vault_agent_group }}
       ExecStart={{ mongo_base_dir }}/bin/mongos --config {{ mongo_base_dir }}/mongos/conf/mongos.conf
       Restart=always
 
@@ -56,8 +56,8 @@
   file:
     path: "{{ mongo_base_dir }}/mongos"
     recurse: yes
-    owner: "{{ mongo_user }}"
-    group: "{{ mongo_group }}"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
   notify:
     - Reload systemd
 

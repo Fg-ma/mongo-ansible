@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Fix ownership of rendered certs
-for file in mongodb.pem mongodb-keyfile; do
-  sudo chown {{ mongo_user }}:{{ mongo_vault_agent_group }} "{{ vault_dir }}/secrets/mongo/$file"
-done
-
 # Restart MongoDB services
 for svc in mongod-configsvr mongos mongod-shardsvr; do
   systemctl list-units --full -all "$svc.service" | grep -Fq loaded && systemctl restart "$svc"
