@@ -85,7 +85,7 @@
     path: /etc/profile.d/mongo_path.sh
     state: absent
 
-- name: Remove sudoers rule for {{ vault_agent_user }}
+- name: Remove sudoers rule for {{ mongo_vault_agent_user }}
   file:
-    path: "/etc/sudoers.d/{{ vault_agent_user }}-mongo"
+    path: "/etc/sudoers.d/{{ mongo_vault_agent_user }}-mongo"
     state: absent

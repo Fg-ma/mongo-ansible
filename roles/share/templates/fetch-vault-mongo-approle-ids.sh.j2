@@ -33,7 +33,7 @@ while true; do
 
   if [[ "$STATUS" == "approved" ]]; then
     VAULT_TOKEN=$(echo "$STATUS_RESPONSE" | jq -r .vault_token)
-    echo "Token: $VAULT_TOKEN"
+
     # get role_id and secret_id from Vault
     ROLE_ID=$(curl -s --header "X-Vault-Token: $VAULT_TOKEN" \
       https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo/role-id | jq -r .data.role_id)
@@ -42,14 +42,16 @@ while true; do
       --request POST \
       https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo/secret-id | jq -r .data.secret_id)
 
-    echo "Role: $ROLE_ID, Secret: $SECRET_ID"
-
     if [[ -z "$ROLE_ID" || -z "$SECRET_ID" ]]; then
       echo "[ERROR] Could not get role_id/secret_id from Vault."
       exit 1
     fi
 
     mkdir -p {{ vault_dir }}/secrets/mongo
+    chown {{ mongo_vault_agent_user }}:{{ vault_agent_navigational_group }} \
+      "{{ vault_dir }}/secrets/mongo"
+    chmod 0710 \
+      "{{ vault_dir }}/secrets/mongo"
 
     echo "$ROLE_ID" > {{ vault_dir }}/secrets/mongo/role_id
     echo "$SECRET_ID" > {{ vault_dir }}/secrets/mongo/secret_id

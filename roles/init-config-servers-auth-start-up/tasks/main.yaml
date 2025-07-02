@@ -104,7 +104,7 @@
 
 - name: Wait for mongod to be up
   wait_for:
-    port: "{{ shard_port }}"
+    port: "{{ config_port }}"
     delay: 5
     timeout: 60
   ignore_errors: true
@@ -112,7 +112,7 @@
 - name: Fix ownership of all MongoDB files
   become: true
   file:
-    path: "{{ mongo_base_dir }}/shard"
+    path: "{{ mongo_base_dir }}/config"
     recurse: yes
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
@@ -121,7 +121,7 @@
 
 - name: Wait for mongod to be up
   wait_for:
-    port: "{{ shard_port }}"
+    port: "{{ config_port }}"
     delay: 5
     timeout: 60
   ignore_errors: true

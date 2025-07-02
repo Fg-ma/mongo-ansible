@@ -86,3 +86,20 @@ cat dual.crt dual.key > dual.pem
 # Secure it:
 chmod 600 dual.pem
 
+
+
+
+
+
+
+
+sudo apparmor_parser -r /etc/apparmor.d/mnt.mongo.bin.mongod
+sudo aa-enforce /mnt/mongo/bin/mongod
+sudo systemctl restart mongod-configsvr
+sudo journalctl -e | grep DENIED
+
+
+sudo apparmor_parser -r /etc/apparmor.d/mnt.mongo.bin.mongod
+sudo aa-complain /mnt/mongo/bin/mongod
+sudo systemctl restart mongod-configsvr
+sudo journalctl -e | grep DENIED

@@ -31,9 +31,9 @@
     group: "{{ mongo_vault_agent_group }}"
     mode: "0400"
 
-- name: Add sudoers rule for {{ vault_agent_user }} to run restart script
+- name: Add sudoers rule for {{ mongo_vault_agent_user }} to run restart script
   copy:
-    dest: /etc/sudoers.d/{{ vault_agent_user }}-mongo
+    dest: /etc/sudoers.d/{{ mongo_vault_agent_user }}-mongo
     content: |
       {{ vault_agent_user }} ALL=(ALL) NOPASSWD: \
         {{ vault_dir }}/scripts/mongo/restart-mongo-services.sh, \
