@@ -1,0 +1,25 @@
+- name: Remove {{ mongo_base_dir }}/bin/mongo
+  file:
+    path: "{{ mongo_base_dir }}/bin/mongod"
+    state: absent
+  become: true
+
+- name: Set mongod apparmor profile name
+  set_fact:
+    mongod_apparmor_profile_name: "{{ mongo_base_dir | regex_replace('^/', '') | replace('/', '.') }}.bin.mongod"
+
+- name: Set AppArmor profile to complain mode before removal
+  command: aa-complain {{ mongod_apparmor_profile_name }}
+  become: true
+  ignore_errors: true
+
+- name: Remove mongod AppArmor profile file
+  file:
+    path: "/etc/apparmor.d/{{ mongod_apparmor_profile_name }}"
+    state: absent
+  become: true
+
+- name: Unload AppArmor profile from kernel
+  command: apparmor_parser -R /etc/apparmor.d/{{ mongod_apparmor_profile_name }}
+  become: true
+  ignore_errors: true

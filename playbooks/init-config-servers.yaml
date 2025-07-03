@@ -6,6 +6,8 @@
     - ../vars/config_servers.yaml
   roles:
     - role: share
+    - role: apparmor-mongod
+    - role: apparmor-mongosh
     - role: init-config-servers-server-setup
 
 - name: Set up Config Servers - Init replica

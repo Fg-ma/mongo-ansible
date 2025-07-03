@@ -32,6 +32,10 @@
     path: "{{ mongo_base_dir }}/mongos"
   register: mongos_dir
 
+- name: Include apparmor tasks
+  import_tasks: apparmor.yaml
+  when: not config_dir.stat.exists
+
 - name: Include completely tasks
   import_tasks: completely.yaml
   when: not config_dir.stat.exists and not mongos_dir.stat.exists

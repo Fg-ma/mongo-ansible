@@ -6,6 +6,8 @@
     - ../vars/shard_servers.yaml
   roles:
     - role: share
+    - role: apparmor-mongod
+    - role: apparmor-mongosh
     - role: add-new-shard-servers
 
 - name: Set up new Shard Servers - add to replica set

@@ -6,6 +6,8 @@
     - ../vars/config_servers.yaml
   roles:
     - role: share
+    - role: apparmor-mongod
+    - role: apparmor-mongosh
     - role: add-new-config-servers
 
 - name: Set up new Config Servers - add to replica set

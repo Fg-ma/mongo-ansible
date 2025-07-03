@@ -32,6 +32,7 @@ sudo systemctl disable mongo-vault-agent.service
 sudo rm -rf /etc/systemd/system/mongo-vault-agent.service
 sudo rm -rf /etc/sudoers.d/vaultagent-mongo
 sudo pkill -f vault-agent
+sudo systemctl daemon-reload
 
 sudo systemctl stop mongod-configsvr.service
 sudo systemctl disable mongod-configsvr.service
@@ -39,6 +40,7 @@ sudo pkill -f mongod.*configsvr
 sudo rm -rf /etc/systemd/system/mongod-configsvr.service
 sudo rm -rf -R /mnt/mongo/*
 sudo ls -l /mnt/mongo
+sudo systemctl daemon-reload
 
 sudo systemctl stop mongod-configsvr.service
 sudo systemctl disable mongod-configsvr.service
@@ -46,6 +48,7 @@ sudo pkill -f mongod.*configsvr
 sudo rm -rf /etc/systemd/system/mongod-configsvr.service
 sudo rm -rf -R /mnt/mongo/config
 sudo ls -l /mnt/mongo
+sudo systemctl daemon-reload
 
 // Force clean mongos server
 sudo systemctl stop mongos.service
@@ -54,6 +57,7 @@ pkill mongos
 sudo rm -rf /etc/systemd/system/mongos.service
 sudo rm -rf -R /mnt/mongo/mongos
 sudo ls -l /mnt/mongo
+sudo systemctl daemon-reload
 
 // Force clean shard server
 sudo systemctl stop mongod-shardsvr.service
@@ -62,6 +66,7 @@ sudo pkill -f mongod.*shardsvr
 sudo rm -rf /etc/systemd/system/mongod-shardsvr.service
 sudo rm -rf -R /mnt/mongo/shard
 sudo ls -l /mnt/mongo
+sudo systemctl daemon-reload
 
 
 
@@ -92,9 +97,14 @@ chmod 600 dual.pem
 
 
 
+python3 -c 'import urllib.parse; print(urllib.parse.quote("my/secure:password", safe=""))'
+
+sudo journalctl --rotate
+sudo journalctl --vacuum-time=1s
+
 
 sudo apparmor_parser -r /etc/apparmor.d/mnt.mongo.bin.mongod
-sudo aa-enforce /mnt/mongo/bin/mongod
+sudo aa-enforce mnt.mongo.bin.mongod
 sudo systemctl restart mongod-configsvr
 sudo journalctl -e | grep DENIED
 
@@ -103,3 +113,22 @@ sudo apparmor_parser -r /etc/apparmor.d/mnt.mongo.bin.mongod
 sudo aa-complain /mnt/mongo/bin/mongod
 sudo systemctl restart mongod-configsvr
 sudo journalctl -e | grep DENIED
+
+sudo apparmor_parser -r /etc/apparmor.d/mnt.mongo.bin.mongos
+sudo aa-enforce mnt.mongo.bin.mongos
+sudo systemctl restart mongos
+sudo journalctl -e | grep DENIED
+
+sudo apparmor_parser -r /etc/apparmor.d/mnt.vault.bin.vault
+sudo aa-enforce mnt.vault.bin.vault
+sudo systemctl restart mongo-vault-agent
+sudo journalctl -e | grep DENIED
+
+sudo apparmor_parser -r /etc/apparmor.d/mnt.mongo.bin.mongosh
+sudo aa-enforce mnt.mongo.bin.mongosh
+sudo journalctl -e | grep DENIED
+
+sudo cat /etc/apparmor.d/mnt.mongo.bin.mongod
+sudo cat /etc/apparmor.d/mnt.mongo.bin.mongos
+sudo cat /etc/apparmor.d/mnt.vault.bin.vault
+sudo cat /etc/apparmor.d/mnt.mongo.bin.mongosh

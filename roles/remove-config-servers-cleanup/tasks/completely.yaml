@@ -1,3 +1,6 @@
+- name: Include apparmor-completely tasks
+  import_tasks: apparmor-completely.yaml
+
 - name: Stop fetch-vault-mongo-approle-ids service
   ansible.builtin.systemd:
     name: fetch-vault-mongo-approle-ids.service
