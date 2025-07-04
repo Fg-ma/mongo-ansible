@@ -18,5 +18,5 @@
   become: true
 
 - name: Set enforce mode for mongos
-  command: aa-complain {{ mongos_apparmor_profile_name }}
+  command: aa-enforce {{ mongos_apparmor_profile_name }}
   become: true

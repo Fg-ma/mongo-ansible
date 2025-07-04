@@ -1,0 +1,15 @@
+- name: Render mongo-vault-restart-script
+  template:
+    src: mongod.j2
+    dest: "/etc/apparmor.d/mongo-vault-restart-script"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Reload AppArmor profile for mongod
+  command: apparmor_parser -r /etc/apparmor.d/mongo-vault-restart-script
+  become: true
+
+- name: Set enforce mode for mongod
+  command: aa-enforce mongo-vault-restart-script
+  become: true

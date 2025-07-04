@@ -14,7 +14,7 @@
 - name: Ensure AppArmor rule exists for Vault's Snowflake OCSP cache
   lineinfile:
     path: /etc/apparmor.d/{{ vault_apparmor_profile_name }}
-    line: "  {{ vault_dir }}/scripts/mongo/restart-mongo-services.sh rix,"
+    line: "  {{ vault_dir }}/scripts/mongo/mongo-vault-restart.sh cx -> mongo-vault-restart-script,"
     state: present
     insertbefore: '^\}'
     create: no
@@ -25,7 +25,7 @@
   ignore_errors: true
 
 - name: Re-enforce the profile
-  command: aa-complain {{ vault_apparmor_profile_name }}
+  command: aa-enforce {{ vault_apparmor_profile_name }}
   ignore_errors: true
 
 - name: Create empty vault-agent.pid file
@@ -66,7 +66,7 @@
     dest: /etc/sudoers.d/{{ mongo_vault_agent_user }}-mongo
     content: |
       {{ vault_agent_user }} ALL=(ALL) NOPASSWD: \
-        {{ vault_dir }}/scripts/mongo/restart-mongo-services.sh, \
+        {{ vault_dir }}/scripts/mongo/mongo-vault-restart.sh, \
         /bin/systemctl restart mongod-configsvr.service, \
         /bin/systemctl restart mongos.service, \
         /bin/systemctl restart mongod-shardsvr.service
@@ -104,8 +104,8 @@
 
 - name: Install restart-mongo-services script
   template:
-    src: restart-mongo-services.sh.j2
-    dest: "{{ vault_dir }}/scripts/mongo/restart-mongo-services.sh"
+    src: mongo-vault-restart.sh.j2
+    dest: "{{ vault_dir }}/scripts/mongo/mongo-vault-restart.sh"
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
     mode: "0550"
@@ -140,7 +140,6 @@
     state: started
     enabled: yes
   register: fetcher_status
-  failed_when: fetcher_status.status.Result != "success"
 
 - name: Start and enable Mongo Vault Agent service
   systemd:

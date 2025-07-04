@@ -9,6 +9,10 @@
 ## ============================================================================
 
 {{ mongo_base_dir }}/bin/mongosh {
+  ## ─── Capabilities ──────────────────────────────────────────
+  capability dac_override,
+  capability dac_read_search,
+
   ## ─── Network ───────────────────────────────────────────────
   network inet stream,
   network inet6 stream,
@@ -91,4 +95,12 @@
 
   ## ─── Temporary files (if you paste to files) ───────────────
   /tmp/mongosh-*/ rw,
+
+  ## ─── Root user's mongosh config ──────────────────────────────
+  /root/.mongodb/mongosh/ rw,
+  /root/.mongodb/mongosh/** rwk,
+
+  ## ─── Local custom CA certs ───────────────────────────────────
+  /usr/local/share/ca-certificates/ r,
+  /usr/local/share/ca-certificates/** r,
 }

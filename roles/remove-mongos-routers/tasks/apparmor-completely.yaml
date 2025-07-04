@@ -12,7 +12,7 @@
 - name: Remove AppArmor rule for Vault's Snowflake OCSP cache
   lineinfile:
     path: /etc/apparmor.d/{{ vault_apparmor_profile_name }}
-    line: "  {{ vault_dir }}/scripts/mongo/restart-mongo-services.sh rix,"
+    line: "  {{ vault_dir }}/scripts/mongo/mongo-vault-restart.sh cx -> mongo-vault-restart-script,"
     state: absent
   ignore_errors: true
 
@@ -21,5 +21,5 @@
   ignore_errors: true
 
 - name: Re-enforce the profile
-  command: aa-complain {{ vault_apparmor_profile_name }}
+  command: aa-enforce {{ vault_apparmor_profile_name }}
   ignore_errors: true

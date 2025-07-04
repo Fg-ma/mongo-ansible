@@ -24,6 +24,11 @@ UUID=1234-5678  /mnt/mongo  xfs  defaults  0  2
 
 
 // Force clean config server
+sudo rm -rf /etc/apparmor.d/mnt.vault.bin.vault
+sudo rm -rf /etc/apparmor.d/mnt.mongo.bin.mongod
+sudo rm -rf /etc/apparmor.d/mnt.mongo.bin.mongos
+sudo rm -rf /etc/apparmor.d/mnt.mongo.bin.mongosh
+
 sudo systemctl stop fetch-vault-mongo-approle-ids.service
 sudo systemctl disable fetch-vault-mongo-approle-ids.service
 sudo rm -rf /etc/systemd/system/fetch-vault-mongo-approle-ids.service

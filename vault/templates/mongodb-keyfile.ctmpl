@@ -1,0 +1,4 @@
+{{- with secret "secret/mongo/mongodb-keyfile" -}}
+{{ .Data.data.content }}
+{{- end }}
+

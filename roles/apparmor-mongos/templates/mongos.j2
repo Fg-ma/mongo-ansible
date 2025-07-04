@@ -46,6 +46,8 @@
   /sys/devices/system/{cpu,node}/** r,
   /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none r,
   /sys/block/ r,
+  /sys/kernel/mm/transparent_hugepage/enabled r,
+  /sys/kernel/mm/transparent_hugepage/defrag r,
 
   ## ─── Dev nodes ───────────────────────────────────────────────
   /dev/urandom r,
@@ -58,6 +60,7 @@
   /etc/resolv.conf r,
   /etc/nsswitch.conf r,
   /etc/hosts r,
+  /etc/host.conf r,
   /usr/lib/os-release r,
   /usr/share/zoneinfo/** r,
 
