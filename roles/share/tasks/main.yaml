@@ -4,6 +4,9 @@
 - name: Include mkdirs tasks
   import_tasks: mkdirs.yaml
 
+- name: Include certs tasks
+  import_tasks: certs.yaml
+
 - name: Include binaries tasks
   import_tasks: binaries.yaml
 

@@ -1,70 +1,38 @@
 #!/bin/bash
 
-set -euo pipefail
+VAULT_TOKEN=$({{ vault_dir }}/bin/vault_requests {{ mongo_base_dir }}/conf/vaultRequests.conf)
 
-# Unique info about this VM
-VM_ID=$(hostname)
-VM_IP=$(hostname -I | awk '{print $1}')
-PURPOSE="Get role_id and secret_id for mongodb secrets"
-POLICIES='["mongo-approle-reader"]'
-NUM_USES=2
-
-# Make request to approval server
-echo "[INFO] Requesting approval from vault approver..."
-RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" \
-  -d "{\"id\":\"${VM_ID}\", \
-       \"ip\":\"${VM_IP}\", \
-       \"purpose\":\"${PURPOSE}\", \
-       \"policies\":${POLICIES}, \
-       \"num_uses\":${NUM_USES}}" \
-  https://{{ vault_ip }}:{{ vault_server_port }}/request)
-
-REQUEST_ID=$(echo "$RESPONSE" | jq -r .request_id)
-
-if [[ -z "$REQUEST_ID" || "$REQUEST_ID" == "null" ]]; then
-  echo "[ERROR] Failed to get request_id"
+if [[ -z "$VAULT_TOKEN" ]]; then
+  echo "[ERROR] Failed to get Vault token"
   exit 1
 fi
 
-# poll for approval
-while true; do
-  STATUS_RESPONSE=$(curl -s "https://{{ vault_ip }}:{{ vault_server_port }}/request-status?id=${REQUEST_ID}")
-  STATUS=$(echo "$STATUS_RESPONSE" | jq -r .status)
+# get role_id and secret_id from Vault
+ROLE_ID=$(curl -s --header "X-Vault-Token: $VAULT_TOKEN" \
+  https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo/role-id | jq -r .data.role_id)
 
-  if [[ "$STATUS" == "approved" ]]; then
-    VAULT_TOKEN=$(echo "$STATUS_RESPONSE" | jq -r .vault_token)
+SECRET_ID=$(curl -s --header "X-Vault-Token: $VAULT_TOKEN" \
+  --request POST \
+  https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo/secret-id | jq -r .data.secret_id)
 
-    # get role_id and secret_id from Vault
-    ROLE_ID=$(curl -s --header "X-Vault-Token: $VAULT_TOKEN" \
-      https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo/role-id | jq -r .data.role_id)
+if [[ -z "$ROLE_ID" || -z "$SECRET_ID" ]]; then
+  echo "[ERROR] Could not get role_id/secret_id from Vault."
+  exit 1
+fi
 
-    SECRET_ID=$(curl -s --header "X-Vault-Token: $VAULT_TOKEN" \
-      --request POST \
-      https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo/secret-id | jq -r .data.secret_id)
+mkdir -p {{ vault_dir }}/secrets/mongo
+chown {{ mongo_vault_agent_user }}:{{ vault_agent_navigational_group }} \
+  "{{ vault_dir }}/secrets/mongo"
+chmod 0710 \
+  "{{ vault_dir }}/secrets/mongo"
 
-    if [[ -z "$ROLE_ID" || -z "$SECRET_ID" ]]; then
-      echo "[ERROR] Could not get role_id/secret_id from Vault."
-      exit 1
-    fi
+echo "$ROLE_ID" > {{ vault_dir }}/secrets/mongo/role_id
+echo "$SECRET_ID" > {{ vault_dir }}/secrets/mongo/secret_id
+chown {{ mongo_vault_agent_user }}:{{ mongo_vault_agent_group }} \
+  "{{ vault_dir }}/secrets/mongo/role_id" \
+  "{{ vault_dir }}/secrets/mongo/secret_id"
+chmod 0640 \
+  "{{ vault_dir }}/secrets/mongo/role_id" \
+  "{{ vault_dir }}/secrets/mongo/secret_id"
 
-    mkdir -p {{ vault_dir }}/secrets/mongo
-    chown {{ mongo_vault_agent_user }}:{{ vault_agent_navigational_group }} \
-      "{{ vault_dir }}/secrets/mongo"
-    chmod 0710 \
-      "{{ vault_dir }}/secrets/mongo"
-
-    echo "$ROLE_ID" > {{ vault_dir }}/secrets/mongo/role_id
-    echo "$SECRET_ID" > {{ vault_dir }}/secrets/mongo/secret_id
-    chown {{ mongo_vault_agent_group }}:{{ mongo_vault_agent_group }} \
-      "{{ vault_dir }}/secrets/mongo/role_id" \
-      "{{ vault_dir }}/secrets/mongo/secret_id"
-    chmod 0640 \
-      "{{ vault_dir }}/secrets/mongo/role_id" \
-      "{{ vault_dir }}/secrets/mongo/secret_id"
-
-    exit 0
-  fi
-
-  echo "[INFO] Waiting for approval..."
-  sleep 2
-done
+exit 0

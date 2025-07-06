@@ -1,6 +1,10 @@
 - name: Add Mongos routers
   hosts: mongos_routers
   become: true
+  vars_prompt:
+    - name: vault_token
+      prompt: "Enter Vault access token"
+      private: true
   vars_files:
     - ../vars/share.yaml
     - ../vars/mongos_routers.yaml

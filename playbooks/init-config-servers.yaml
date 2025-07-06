@@ -1,6 +1,10 @@
 - name: Set up Config Servers - Server Set up
   hosts: config_servers
   become: true
+  vars_prompt:
+    - name: vault_token
+      prompt: "Enter Vault access token"
+      private: true
   vars_files:
     - ../vars/share.yaml
     - ../vars/config_servers.yaml

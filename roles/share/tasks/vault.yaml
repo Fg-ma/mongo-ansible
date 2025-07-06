@@ -61,6 +61,14 @@
     group: "{{ mongo_vault_agent_group }}"
     mode: "0400"
 
+- name: Install vaultRequests.conf
+  template:
+    src: vaultRequests.conf.j2
+    dest: "{{ mongo_base_dir }}/conf/vaultRequests.conf"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0440"
+
 - name: Add sudoers rule for {{ mongo_vault_agent_user }} to run restart script
   copy:
     dest: /etc/sudoers.d/{{ mongo_vault_agent_user }}-mongo
@@ -93,7 +101,7 @@
 
       [Service]
       User=root
-      Group=root
+      Group={{ vault_agent_bin_group }}
       Type=oneshot
       ExecStart={{ vault_dir }}/scripts/mongo/fetch-vault-mongo-approle-ids.sh
       RemainAfterExit=yes

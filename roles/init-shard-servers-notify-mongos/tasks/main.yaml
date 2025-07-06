@@ -15,7 +15,7 @@
     fetcher_secret_path: "{{ mongo_admin_secret_path }}"
     fetcher_vault_token: "{{ vault_token }}"
     fetcher_vault_url: "{{ vault_url }}"
-    fetcher_ca_path: "{{ ca_path }}"
+    fetcher_ca_path: "{{ local_ca_path }}"
     fetcher_engine_version: 2
 
 - name: Add shard to cluster

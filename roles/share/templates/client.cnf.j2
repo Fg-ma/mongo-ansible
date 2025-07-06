@@ -1,0 +1,22 @@
+[ req ]
+default_bits        = 4096
+default_md          = sha256
+prompt              = no
+distinguished_name  = dn
+req_extensions      = req_ext
+
+[ dn ]
+C  = US
+ST = State
+L  = City
+O  = MyOrg
+OU = Vault Client
+CN = {{ inventory_hostname }}
+
+[ req_ext ]
+subjectAltName = @alt_names
+extendedKeyUsage = clientAuth
+
+[ alt_names ]
+DNS.1 = mongo-client.local
+IP.1  = {{ hostvars[inventory_hostname]['ansible_host'] }}

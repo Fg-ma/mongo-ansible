@@ -14,6 +14,15 @@
     create: yes
     mode: "0750"
 
+# Conf
+- name: Create {{ mongo_base_dir }}/bin directory
+  file:
+    path: "{{ mongo_base_dir }}/conf"
+    state: directory
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0750"
+
 # Vault
 - name: Create {{ vault_dir }}/secrets/mongo directory
   file:
@@ -42,6 +51,14 @@
 - name: Create {{ vault_dir }}/agents/mongo directory
   file:
     path: "{{ vault_dir }}/agents/mongo"
+    state: directory
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ vault_agent_navigational_group }}"
+    mode: "0710"
+
+- name: Create {{ vault_dir }}/secrets/mongo directory
+  file:
+    path: "{{ vault_dir }}/certs/mongo"
     state: directory
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ vault_agent_navigational_group }}"
