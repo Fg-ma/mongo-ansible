@@ -1,6 +1,3 @@
-- name: Include apparmor-completely tasks
-  import_tasks: apparmor-completely.yaml
-
 - name: Stop fetch-vault-mongo-approle-ids service
   ansible.builtin.systemd:
     name: fetch-vault-mongo-approle-ids.service
@@ -63,26 +60,6 @@
     state: absent
   with_items: "{{ mongo_base_dir_contents.files }}"
 
-- name: Remove {{ vault_dir }}/secrets/mongo directory
-  file:
-    path: "{{ vault_dir }}/secrets/mongo"
-    state: absent
-
-- name: Remove {{ vault_dir }}/scripts/mongo directory
-  file:
-    path: "{{ vault_dir }}/scripts/mongo"
-    state: absent
-
-- name: Remove {{ vault_dir }}/templates/mongo directory
-  file:
-    path: "{{ vault_dir }}/templates/mongo"
-    state: absent
-
-- name: Remove {{ vault_dir }}/agents/mongo directory
-  file:
-    path: "{{ vault_dir }}/agents/mongo"
-    state: absent
-
 - name: Remove /etc/profile.d/mongo_path.sh
   file:
     path: /etc/profile.d/mongo_path.sh
@@ -92,3 +69,12 @@
   file:
     path: "/etc/sudoers.d/{{ mongo_vault_agent_user }}-mongo"
     state: absent
+
+- name: Include completely-apparmor tasks
+  import_tasks: completely-apparmor.yaml
+
+- name: Include completely-dirs tasks
+  import_tasks: completely-dirs.yaml
+
+- name: Include completely-users tasks
+  import_tasks: completely-users.yaml

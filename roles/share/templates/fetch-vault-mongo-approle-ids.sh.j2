@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VAULT_TOKEN=$({{ vault_dir }}/bin/vault_requests {{ mongo_base_dir }}/conf/vaultRequests.conf)
+VAULT_TOKEN=$({{ vault_dir }}/bin/vault_requests {{ mongo_base_dir }}/conf/mongoApproleVR.conf)
 
 if [[ -z "$VAULT_TOKEN" ]]; then
   echo "[ERROR] Failed to get Vault token"

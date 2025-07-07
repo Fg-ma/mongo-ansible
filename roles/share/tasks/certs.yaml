@@ -9,7 +9,8 @@
 - name: Generate private key
   command: >
     openssl genrsa -out {{ vault_dir }}/certs/mongo/client.key 4096
-  creates: "{{ vault_dir }}/certs/mongo/client.key"
+  args:
+    creates: "{{ vault_dir }}/certs/mongo/client.key"
   become: true
 
 - name: Generate CSR
@@ -18,7 +19,8 @@
     -key {{ vault_dir }}/certs/mongo/client.key
     -out {{ vault_dir }}/certs/mongo/client.csr
     -config {{ vault_dir }}/certs/mongo/client.cnf
-  creates: "{{ vault_dir }}/certs/mongo/client.csr"
+  args:
+    creates: "{{ vault_dir }}/certs/mongo/client.csr"
   become: true
 
 - name: Include vault_fetcher role
@@ -32,21 +34,20 @@
     fetcher_ca_path: "{{ local_ca_path }}"
     fetcher_engine_version: 2
 
-- name: Debug CA key content (only for temporary debug, contains sensitive data!)
-  debug:
-    msg: "{{ ca_key_dict }}"
-  no_log: false
-
 - name: Write CA key to a secure temporary file
   tempfile:
     state: file
     suffix: ".key"
-    mode: "0600"
   register: temp_ca_key
+
+- name: Set permissions on temporary CA key file
+  file:
+    path: "{{ temp_ca_key.path }}"
+    mode: "0600"
 
 - name: Write the CA key content to temp file
   copy:
-    content: "{{ ca_key_dict['ca.key'] }}"
+    content: "{{ ca_key_dict.value }}"
     dest: "{{ temp_ca_key.path }}"
     mode: "0600"
   no_log: true
@@ -61,9 +62,10 @@
     -out {{ vault_dir }}/certs/mongo/client.crt
     -days 365
     -sha256
-    -extfile {{ vault_dir }}/certs/mongo/mongo-client.cnf
+    -extfile {{ vault_dir }}/certs/mongo/client.cnf
     -extensions req_ext
-  creates: "{{ vault_dir }}/certs/mongo/client.crt"
+  args:
+    creates: "{{ vault_dir }}/certs/mongo/client.crt"
   become: true
 
 - name: Delete temporary CA key file
