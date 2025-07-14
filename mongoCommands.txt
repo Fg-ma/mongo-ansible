@@ -129,6 +129,10 @@ sudo aa-enforce mnt.vault.bin.vault
 sudo systemctl restart mongo-vault-agent
 sudo journalctl -e | grep DENIED
 
+sudo apparmor_parser -r /etc/apparmor.d/mnt.vault.bin.vault_requests
+sudo aa-enforce mnt.vault.bin.vault_requests
+sudo journalctl -e | grep DENIED
+
 sudo apparmor_parser -r /etc/apparmor.d/mnt.mongo.bin.mongosh
 sudo aa-enforce mnt.mongo.bin.mongosh
 sudo journalctl -e | grep DENIED

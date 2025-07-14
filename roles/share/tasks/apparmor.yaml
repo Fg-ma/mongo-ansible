@@ -1,6 +1,6 @@
 - name: Render mongo-vault-restart-script
   template:
-    src: mongod.j2
+    src: mongo-vault-restart-script.j2
     dest: "/etc/apparmor.d/mongo-vault-restart-script"
     owner: root
     group: root
@@ -46,7 +46,7 @@
   ignore_errors: true
 
 # Vault request bin
-- name: Set vault apparmor profile name
+- name: Set vault requests apparmor profile name
   set_fact:
     vault_requests_apparmor_profile_name: "{{ vault_dir | regex_replace('^/', '') | replace('/', '.') }}.bin.vault_requests"
 

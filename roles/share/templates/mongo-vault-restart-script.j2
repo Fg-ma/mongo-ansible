@@ -17,12 +17,4 @@ profile mongo-vault-restart-script {
   /proc/*/fd/** r,
 
   /run/systemd/** r,
-
-  # Required for D-Bus access
-#  /usr/bin/busctl rix,
-#  /var/run/dbus/system_bus_socket rw,
-
-  # Allow libc, etc.
-#  /lib/** mr,
-#  /usr/lib/** mr,
 }

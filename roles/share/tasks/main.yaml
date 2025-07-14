@@ -10,6 +10,9 @@
 - name: Include binaries tasks
   import_tasks: binaries.yaml
 
+- name: Include apparmor tasks
+  import_tasks: apparmor.yaml
+
 - name: Check if mongo-vault-agent service is running
   shell: systemctl is-active mongo-vault-agent
   register: mongo_vault_agent_status

@@ -2,7 +2,7 @@ mongo_base_dir: /mnt/mongo
 vault_dir: /mnt/vault
 local_ca_path: "/home/fg/Desktop/tableTopSecrets/ca.pem"
 tabletop_vault_server_ip: 192.168.1.48
-tabletop_vault_server_port: 4343
+tabletop_vault_server_port: 2223
 mongo_certs_user: mongocerts
 mongo_certs_group: mongocerts
 mongo_vault_agent_user: mongovaultagent
