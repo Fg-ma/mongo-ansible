@@ -1,5 +1,4 @@
 repl_set_name: cfgRS1
 cluster_role: configsvr
 config_port: 27019
-primary_node: 192.168.122.100
-vault_url: "https://192.168.1.48:8200"
+primary_node: 10.40.0.101

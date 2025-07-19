@@ -2,6 +2,5 @@ shard_port: 27020
 mongos_port: 27021
 repl_set_name: shardRS1
 cluster_role: shardsvr
-primary_node: 192.168.122.100
-mongos_node: 192.168.122.100
-vault_url: "https://192.168.1.48:8200"
+primary_node: 10.40.0.101
+mongos_node: 10.40.0.101

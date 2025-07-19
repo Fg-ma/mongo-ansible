@@ -1,11 +1,11 @@
 // Config server login
-sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@192.168.122.100:27019,192.168.122.101:27019,192.168.122.102:27019/admin?replicaSet=cfgRS1&tls=true&tlsCAFile=/mnt/vault/authorities/ca.pem&tlsCertificateKeyFile=/mnt/vault/secrets/mongo/mongodb.pem"
+sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@10.40.0.101:27019,10.40.0.102:27019,10.40.0.103:27019/admin?replicaSet=cfgRS1&tls=true&tlsCAFile=/mnt/vault/authorities/ca.pem&tlsCertificateKeyFile=/mnt/vault/secrets/mongo/mongodb.pem"
 
 // Shard server login
-sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@192.168.122.100:27020,192.168.122.101:27020,192.168.122.102:27020/admin?replicaSet=shardRS1&tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/secrets/mongodb.pem"
+sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@10.40.0.101:27020,10.40.0.102:27020,10.40.0.103:27020/admin?replicaSet=shardRS1&tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/secrets/mongodb.pem"
 
 // Mongos server login
-sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@192.168.122.100:27021/admin?tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/secrets/mongodb.pem"
+sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@10.40.0.101:27021/admin?tls=true&tlsCAFile=certs/ca.pem&tlsCertificateKeyFile=certs/secrets/mongodb.pem"
 
 
 
@@ -78,26 +78,23 @@ sudo systemctl daemon-reload
 // Remake certs
 # 1a. Generate the private key and CSR
 openssl req -new -nodes \
-  -out dual.csr \
-  -keyout dual.key \
-  -config dual.cnf
+  -out .csr \
+  -keyout .key \
+  -config .cnf
 
 # 2a. Sign the CSR to produce the cert
 openssl x509 -req \
-  -in dual.csr \
-  -CA ../ca.pem -CAkey ../ca.key -CAcreateserial \
-  -out dual.crt \
-  -extensions v3_req -extfile dual.cnf \
+  -in .csr \
+  -CA /home/fg/Desktop/tableTopSecrets/ca.pem -CAkey /home/fg/Desktop/tableTopSecrets/ca.key -CAcreateserial \
+  -out .crt \
+  -extensions v3_req -extfile .cnf \
   -days 365
   
 # 3a. Concatenate key+cert into the single file MongoDB expects
-cat dual.crt dual.key > dual.pem
+cat .crt .key > .pem
 
 # Secure it:
-chmod 600 dual.pem
-
-
-
+chmod 600 .pem
 
 
 
