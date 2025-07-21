@@ -15,10 +15,10 @@
     group: "{{ mongo_vault_agent_group }}"
     mode: "0400"
 
-- name: Copy Vault Agent mongodb.pem template
-  copy:
-    src: "{{ playbook_dir }}/../vault/templates/mongodb.pem.ctmpl"
-    dest: "{{ vault_dir }}/templates/mongo/mongodb.pem.ctmpl"
+- name: Deploy rendered Vault Agent mongodb.pem.ctmpl template
+  template:
+    src: "{{ playbook_dir }}/../vault/templates/mongodb.pem.ctmpl.j2"
+    dest: "{{ vault_dir }}/templates/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem.ctmpl"
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
     mode: "0400"

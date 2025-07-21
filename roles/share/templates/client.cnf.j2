@@ -18,7 +18,5 @@ subjectAltName = @alt_names
 extendedKeyUsage = clientAuth
 
 [ alt_names ]
-DNS.1 = *.mongo
+DNS.1 = {{ inventory_hostname }}.mongo
 IP.1  = {{ hostvars[inventory_hostname]['ansible_host'] }}
-IP.3 = 10.10.0.100
-IP.4 = 10.40.0.100

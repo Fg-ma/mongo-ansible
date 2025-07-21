@@ -9,3 +9,11 @@ path "secret/data/tableTop/ca.pem" {
 path "secret/data/tableTop/ca.key" {
   capabilities = ["read"]
 }
+
+path "secret/data/mongo/" {
+  capabilities = ["list"]
+}
+
+path "secret/data/mongo/*" {
+  capabilities = ["create", "update"]
+}

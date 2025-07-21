@@ -21,8 +21,8 @@ auto_auth {
 }
 
 template {
-  source      = "{{ vault_dir }}/templates/mongo/mongodb.pem.ctmpl"
-  destination = "{{ vault_dir }}/secrets/mongo/mongodb.pem"
+  source      = "{{ vault_dir }}/templates/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem.ctmpl"
+  destination = "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem"
   perms       = 0600
   command     = "sudo {{ vault_dir }}/scripts/mongo/mongo-vault-restart.sh; exit 0"
 }

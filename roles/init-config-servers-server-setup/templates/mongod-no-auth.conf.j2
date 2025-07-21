@@ -8,10 +8,10 @@ systemLog:
 
 net:
   port: {{ config_port }}
-  bindIp: 0.0.0.0
+  bindIp: {{ hostvars[inventory_hostname]['ansible_host'] }}
   tls:
     mode: requireTLS
-    certificateKeyFile: {{ vault_dir }}/secrets/mongo/mongodb.pem
+    certificateKeyFile: {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem
     CAFile: {{ vault_dir }}/authorities/ca.pem
     allowConnectionsWithoutCertificates: false
     allowInvalidCertificates: false

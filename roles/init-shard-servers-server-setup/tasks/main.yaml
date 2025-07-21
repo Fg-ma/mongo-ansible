@@ -35,6 +35,7 @@
     creates: "{{ mongo_base_dir }}/shard/logs/mongod.log"
 
 - name: Wait for MongoDB port to be open
+  ignore_errors: true
   wait_for:
     host: localhost
     port: "{{ shard_port }}"

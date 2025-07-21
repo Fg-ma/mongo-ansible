@@ -1,0 +1,23 @@
+[ req ]
+default_bits       = 4096
+default_md         = sha256
+prompt             = no
+req_extensions     = req_ext
+distinguished_name = dn
+
+[ dn ]
+C = US
+ST = State
+L = City
+O = TableTop
+OU = Org
+CN = {{ inventory_hostname }}
+
+[ req_ext ]
+keyUsage = keyEncipherment, dataEncipherment, digitalSignature
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = {{ inventory_hostname }}.mongo
+IP.1  = {{ hostvars[inventory_hostname]['ansible_host'] }}
