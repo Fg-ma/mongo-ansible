@@ -96,7 +96,7 @@
 
 - name: Wait for MongoDB port to be open
   wait_for:
-    host: localhost
+    host: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
     port: "{{ config_port }}"
     timeout: 60
     delay: 5
