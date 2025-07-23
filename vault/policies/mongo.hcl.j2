@@ -1,8 +1,8 @@
 path "auth/approle/login" {
-  capabilities = ["create", "read"]
+  capabilities = ["create"]
 }
 
-path "secret/data/mongo/*" {
+path "secret/data/mongo/{{ hostvars[inventory_hostname]['ansible_host'] }}/pem" {
   capabilities = ["read"]
 }
 

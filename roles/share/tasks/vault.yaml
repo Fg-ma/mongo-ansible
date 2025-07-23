@@ -7,6 +7,70 @@
     mode: "0640"
   become: true
 
+- name: Create vault policies
+  block:
+    - name: "Render Vault policy for mongo-approle-reader"
+      template:
+        src: "{{ playbook_dir }}/../vault/policies/mongo-approle-reader.hcl.j2"
+        dest: "/tmp/mongo-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+
+    - name: "Read rendered mongo-approle-reader policy file"
+      slurp:
+        src: "/tmp/mongo-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+      register: slurped_mongo_approle_reader_policy
+
+    - name: "Upload mongo-approle-reader policy to vault"
+      delegate_to: localhost
+      community.hashi_vault.vault_write:
+        url: "{{ vault_url }}"
+        token: "{{ vault_token }}"
+        path: "sys/policies/acl/mongo-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}"
+        ca_cert: "{{ local_ca_path }}"
+        data:
+          policy: "{{ slurped_mongo_approle_reader_policy.content | b64decode }}"
+
+    - name: "Render Vault policy for mongo"
+      template:
+        src: "{{ playbook_dir }}/../vault/policies/mongo.hcl.j2"
+        dest: "/tmp/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+
+    - name: "Read rendered mongo policy file"
+      slurp:
+        src: "/tmp/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+      register: slurped_mongo_policy
+
+    - name: "Upload mongo policy to vault"
+      delegate_to: localhost
+      community.hashi_vault.vault_write:
+        url: "{{ vault_url }}"
+        token: "{{ vault_token }}"
+        path: "sys/policies/acl/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}"
+        ca_cert: "{{ local_ca_path }}"
+        data:
+          policy: "{{ slurped_mongo_policy.content | b64decode }}"
+
+  always:
+    - name: "Clean up temporary policy file"
+      file:
+        path: "/tmp/mongo-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+        state: absent
+
+    - name: "Clean up temporary policy file"
+      file:
+        path: "/tmp/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+        state: absent
+
+- name: "Create AppRole for node"
+  community.hashi_vault.vault_write:
+    url: "{{ vault_url }}"
+    token: "{{ vault_token }}"
+    path: "auth/approle/role/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}"
+    ca_cert: "{{ local_ca_path }}"
+    data:
+      token_policies: "mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}"
+      token_ttl: "1h"
+      token_max_ttl: "4h"
+
 - name: Copy Vault Agent config
   template:
     src: "{{ playbook_dir }}/../vault/agents/mongo-agent-config.hcl.j2"

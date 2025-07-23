@@ -4,13 +4,13 @@ server:
 
 tls:
   ca: {{ vault_dir }}/authorities/ca.pem
-  cert: {{ vault_dir }}/certs/mongo/client.crt
-  key: {{ vault_dir }}/certs/mongo/client.key
+  cert: {{ vault_dir }}/certs/mongo/vaultServerClient.crt
+  key: {{ vault_dir }}/certs/mongo/vaultServerClient.key
 
 request:
   id: {{ inventory_hostname }}
   ip: {{ hostvars[inventory_hostname]['ansible_host'] }}
   purpose: Get role_id and secret_id for mongodb secrets
   policies:
-    - mongo-approle-reader
+    - mongo-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}
   num_uses: 2

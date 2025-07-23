@@ -1,26 +1,26 @@
-- name: Install client.cnf
+- name: Install vaultServerClient.cnf
   template:
-    src: client.cnf.j2
-    dest: "{{ vault_dir }}/certs/mongo/client.cnf"
+    src: vaultServerClient.cnf.j2
+    dest: "{{ vault_dir }}/certs/mongo/vaultServerClient.cnf"
     owner: "{{ mongo_certs_user }}"
     group: "{{ mongo_certs_group }}"
     mode: "0640"
 
-- name: Generate client private key
+- name: Generate vaultServerClient private key
   command: >
-    openssl genrsa -out {{ vault_dir }}/certs/mongo/client.key 4096
+    openssl genrsa -out {{ vault_dir }}/certs/mongo/vaultServerClient.key 4096
   args:
-    creates: "{{ vault_dir }}/certs/mongo/client.key"
+    creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.key"
   become: true
 
-- name: Generate client CSR
+- name: Generate vaultServerClient CSR
   command: >
     openssl req -new 
-    -key {{ vault_dir }}/certs/mongo/client.key
-    -out {{ vault_dir }}/certs/mongo/client.csr
-    -config {{ vault_dir }}/certs/mongo/client.cnf
+    -key {{ vault_dir }}/certs/mongo/vaultServerClient.key
+    -out {{ vault_dir }}/certs/mongo/vaultServerClient.csr
+    -config {{ vault_dir }}/certs/mongo/vaultServerClient.cnf
   args:
-    creates: "{{ vault_dir }}/certs/mongo/client.csr"
+    creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.csr"
   become: true
 
 - name: Install mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.cnf
@@ -77,20 +77,20 @@
     mode: "0600"
   no_log: true
 
-- name: Sign client CSR to create client certificate
+- name: Sign vaultServerClient CSR to create vaultServerClient certificate
   command: >
     openssl x509 -req
-    -in {{ vault_dir }}/certs/mongo/client.csr
+    -in {{ vault_dir }}/certs/mongo/vaultServerClient.csr
     -CA {{ vault_dir }}/authorities/ca.pem
     -CAkey {{ temp_ca_key.path }}
     -CAcreateserial
-    -out {{ vault_dir }}/certs/mongo/client.crt
+    -out {{ vault_dir }}/certs/mongo/vaultServerClient.crt
     -days 365
     -sha256
-    -extfile {{ vault_dir }}/certs/mongo/client.cnf
+    -extfile {{ vault_dir }}/certs/mongo/vaultServerClient.cnf
     -extensions req_ext
   args:
-    creates: "{{ vault_dir }}/certs/mongo/client.crt"
+    creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.crt"
   become: true
 
 - name: Sign mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }} CSR to create mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }} certificate
@@ -131,9 +131,9 @@
     group: "{{ mongo_certs_group }}"
     mode: "0640"
   loop:
-    - "{{ vault_dir }}/certs/mongo/client.key"
-    - "{{ vault_dir }}/certs/mongo/client.crt"
-    - "{{ vault_dir }}/certs/mongo/client.csr"
+    - "{{ vault_dir }}/certs/mongo/vaultServerClient.key"
+    - "{{ vault_dir }}/certs/mongo/vaultServerClient.crt"
+    - "{{ vault_dir }}/certs/mongo/vaultServerClient.csr"
 
 - name: Upload Mongo TLS artifacts for this host to Vault (separate secrets, API, no CLI)
   vars:

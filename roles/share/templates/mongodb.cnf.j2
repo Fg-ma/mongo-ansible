@@ -19,10 +19,4 @@ keyUsage = keyEncipherment, digitalSignature
 
 [ alt_names ]
 DNS.1 = {{ inventory_hostname }}.mongo
-DNS.2 = localhost
 IP.1 = {{ hostvars[inventory_hostname]['ansible_host'] }}
-IP.2 = 127.0.0.1
-IP.3 = 192.168.1.95
-IP.4 = 10.10.0.{{ hostvars[inventory_hostname]['ansible_host'].split('.')[-1] }}
-IP.5 = 10.20.0.{{ hostvars[inventory_hostname]['ansible_host'].split('.')[-1] }}
-IP.6 = 10.30.0.{{ hostvars[inventory_hostname]['ansible_host'].split('.')[-1] }}

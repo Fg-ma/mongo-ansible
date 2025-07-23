@@ -9,11 +9,11 @@ fi
 
 # get role_id and secret_id from Vault
 ROLE_ID=$(curl -s --header "X-Vault-Token: $VAULT_TOKEN" \
-  https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo/role-id | jq -r .data.role_id)
+  https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}/role-id | jq -r .data.role_id)
 
 SECRET_ID=$(curl -s --header "X-Vault-Token: $VAULT_TOKEN" \
   --request POST \
-  https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo/secret-id | jq -r .data.secret_id)
+  https://{{ vault_ip }}:{{ hashi_vault_port }}/v1/auth/approle/role/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}/secret-id | jq -r .data.secret_id)
 
 if [[ -z "$ROLE_ID" || -z "$SECRET_ID" ]]; then
   echo "[ERROR] Could not get role_id/secret_id from Vault."

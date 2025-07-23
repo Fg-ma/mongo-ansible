@@ -6,4 +6,5 @@
       - apparmor-profiles
       - apparmor-profiles-extra
     state: present
+    update_cache: yes
   become: true

@@ -1,3 +1,11 @@
+path "sys/policies/acl/*" {
+  capabilities = ["create", "update", "read", "delete", "list"]
+}
+
+path "auth/approle/role/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+
 path "secret/data/mongo/admin" {
   capabilities = ["read"]
 }
