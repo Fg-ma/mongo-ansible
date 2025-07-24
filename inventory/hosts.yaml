@@ -22,9 +22,9 @@ all:
 
     remove_config_servers:
       hosts:
-        tableTopNode1:
-        tableTopNode2:
-        tableTopNode3:
+        # tableTopNode1:
+        # tableTopNode2:
+        # tableTopNode3:
 
     shard_servers:
       hosts:
@@ -40,9 +40,9 @@ all:
 
     remove_shard_servers:
       hosts:
-        tableTopNode1:
-        tableTopNode2:
-        tableTopNode3:
+        # tableTopNode1:
+        # tableTopNode2:
+        # tableTopNode3:
 
     mongos_routers:
       hosts:
@@ -52,6 +52,6 @@ all:
 
     remove_mongos_routers:
       hosts:
-        tableTopNode1:
-        tableTopNode2:
-        tableTopNode3:
+        # tableTopNode1:
+        # tableTopNode2:
+        # tableTopNode3:

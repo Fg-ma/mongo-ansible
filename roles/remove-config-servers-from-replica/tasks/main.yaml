@@ -11,7 +11,7 @@
 
 - name: Get current primary host
   shell: |
-    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@localhost:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem&directConnection=true" --quiet --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@{{ hostvars[inventory_hostname]['ansible_host'] }}:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem&directConnection=true" --quiet --eval '
       const status = rs.status();
       print(status.members.find(m => m.stateStr === "PRIMARY").name);
     '
@@ -24,7 +24,7 @@
 
 - name: Remove all config servers that are not the primary
   shell: |
-    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@localhost:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem&directConnection=true" --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@{{ hostvars[inventory_hostname]['ansible_host'] }}:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem&directConnection=true" --eval '
     const currentMembers = rs.status().members.map(m => m.name);
     {% for host in groups["remove_config_servers"] %}
     const targetHost = "{{ hostvars[host].ansible_host }}:{{ config_port }}";
@@ -45,7 +45,7 @@
 
 - name: Step down current primary if it's in the remove list
   shell: |
-    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@localhost:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem&directConnection=true" --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@{{ hostvars[inventory_hostname]['ansible_host'] }}:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem&directConnection=true" --eval '
     try {
       rs.stepDown(60, 60);
     } catch (e) {
@@ -58,7 +58,7 @@
 - name: Wait for new primary to be elected
   shell: |
     sleep 2
-    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@localhost:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem&directConnection=true" --quiet --eval 'print(rs.isMaster().primary)'
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@{{ hostvars[inventory_hostname]['ansible_host'] }}:{{ config_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem&directConnection=true" --quiet --eval 'print(rs.isMaster().primary)'
   when: current_primary in groups["remove_config_servers"] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '$', ':' ~ config_port) | list
   register: new_primary_result
   run_once: true

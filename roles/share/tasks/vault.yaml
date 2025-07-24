@@ -61,6 +61,7 @@
         state: absent
 
 - name: "Create AppRole for node"
+  delegate_to: localhost
   community.hashi_vault.vault_write:
     url: "{{ vault_url }}"
     token: "{{ vault_token }}"
@@ -83,14 +84,6 @@
   template:
     src: "{{ playbook_dir }}/../vault/templates/mongodb.pem.ctmpl.j2"
     dest: "{{ vault_dir }}/templates/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem.ctmpl"
-    owner: "{{ mongo_vault_agent_user }}"
-    group: "{{ mongo_vault_agent_group }}"
-    mode: "0400"
-
-- name: Copy Vault Agent mongodb-keyfile template
-  copy:
-    src: "{{ playbook_dir }}/../vault/templates/mongodb-keyfile.ctmpl"
-    dest: "{{ vault_dir }}/templates/mongo/mongodb-keyfile.ctmpl"
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
     mode: "0400"

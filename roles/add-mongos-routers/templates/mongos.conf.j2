@@ -17,7 +17,11 @@ sharding:
   configDB: {{ config_repl_set_name }}/{{ config_server_hosts | join(',') }}
 
 security:
-  keyFile: {{ vault_dir }}/secrets/mongo/mongodb-keyfile
+  authorization: enabled
+  clusterAuthMode: x509
+
+setParameter:
+  authenticationMechanisms: "SCRAM-SHA-256,MONGODB-X509"
 
 processManagement:
   pidFilePath: "{{ mongo_base_dir }}/mongos/logs/mongos.pid"

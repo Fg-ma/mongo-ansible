@@ -81,7 +81,6 @@
   ## ─── Vault certificates ────────────────────────────────────
   {{ vault_dir }}/authorities/ca.pem r,
   {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem r,
-  {{ vault_dir }}/secrets/mongo/mongodb-keyfile r,
 
   ## ─── TLS/CA certs system-wide ──────────────────────────────
   /etc/ssl/ r,

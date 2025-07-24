@@ -3,6 +3,15 @@
     name: fetch-vault-mongo-approle-ids.service
     state: stopped
     enabled: no
+  ignore_errors: true
+  become: true
+
+- name: Stop mongod-shardsvr service
+  ansible.builtin.systemd:
+    name: mongod-shardsvr.service
+    state: stopped
+    enabled: no
+  ignore_errors: true
   become: true
 
 - name: Remove fetch-vault-mongo-approle-ids systemd service file
@@ -78,3 +87,6 @@
 
 - name: Include completely-users tasks
   import_tasks: completely-users.yaml
+
+- name: Include completely-vault tasks
+  import_tasks: completely-vault.yaml

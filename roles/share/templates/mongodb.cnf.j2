@@ -7,9 +7,10 @@ distinguished_name = dn
 
 [ dn ]
 C = US
-ST = State
-L = City
+ST = FL
+L = CNTL
 O = TableTop
+OU = MongoCluster
 CN = {{ hostvars[inventory_hostname]['ansible_host'] }}
 
 [ req_ext ]

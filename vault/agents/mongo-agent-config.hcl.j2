@@ -27,9 +27,3 @@ template {
   command     = "sudo {{ vault_dir }}/scripts/mongo/mongo-vault-restart.sh; exit 0"
 }
 
-template {
-  source      = "{{ vault_dir }}/templates/mongo/mongodb-keyfile.ctmpl"
-  destination = "{{ vault_dir }}/secrets/mongo/mongodb-keyfile"
-  perms       = 0600
-  command     = "sudo {{ vault_dir }}/scripts/mongo/mongo-vault-restart; exit 0"
-}

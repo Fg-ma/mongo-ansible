@@ -3,6 +3,7 @@
     name: mongod-configsvr.service
     state: stopped
     enabled: no
+  ignore_errors: true
   become: true
 
 - name: Kill mongod process (ignoring failure if not running)

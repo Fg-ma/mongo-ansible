@@ -24,7 +24,10 @@ sharding:
 
 security:
   authorization: enabled
-  keyFile: {{ vault_dir }}/secrets/mongo/mongodb-keyfile
+  clusterAuthMode: x509
+
+setParameter:
+  authenticationMechanisms: "SCRAM-SHA-256,MONGODB-X509"
 
 processManagement:
   pidFilePath: "{{ mongo_base_dir }}/config/logs/mongod.pid"

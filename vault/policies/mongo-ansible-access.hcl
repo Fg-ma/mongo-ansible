@@ -23,5 +23,9 @@ path "secret/data/mongo/" {
 }
 
 path "secret/data/mongo/*" {
-  capabilities = ["create", "update"]
+  capabilities = ["create", "update", "delete", "list"]
+}
+
+path "secret/metadata/mongo/*" {
+  capabilities = ["delete", "list"]
 }

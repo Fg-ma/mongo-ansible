@@ -5,7 +5,3 @@ path "auth/approle/login" {
 path "secret/data/mongo/{{ hostvars[inventory_hostname]['ansible_host'] }}/pem" {
   capabilities = ["read"]
 }
-
-path "secret/data/mongo/mongodb-keyfile" {
-  capabilities = ["read"]
-}
