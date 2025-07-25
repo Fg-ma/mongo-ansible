@@ -54,6 +54,12 @@ pkill mongos
 sudo rm -rf /etc/systemd/system/mongos.service
 sudo rm -rf -R /mnt/mongo/mongos
 sudo ls -l /mnt/mongo
+sudo systemctl stop fetch-vault-mongos-approle-ids.service
+sudo systemctl disable fetch-vault-mongos-approle-ids.service
+sudo rm -rf /etc/systemd/system/fetch-vault-mongos-approle-ids.service
+sudo systemctl stop mongos-vault-agent.service
+sudo systemctl disable mongos-vault-agent.service
+sudo rm -rf /etc/systemd/system/mongos-vault-agent.service
 sudo systemctl daemon-reload
 
 // Force clean shard server

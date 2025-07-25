@@ -10,12 +10,12 @@ C = {{ cert_country }}
 ST = {{ cert_state }}
 L = {{ cert_locality }}
 O = {{ cert_organization }}
-OU = MongoInternalCluster
+OU = MongoClient
 CN = {{ hostvars[inventory_hostname]['ansible_host'] }}
 
 [ req_ext ]
 subjectAltName = @alt_names
-extendedKeyUsage = serverAuth, clientAuth
+extendedKeyUsage = clientAuth
 keyUsage = keyEncipherment, digitalSignature
 
 [ alt_names ]

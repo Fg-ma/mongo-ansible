@@ -56,7 +56,7 @@
     group: "{{ vault_agent_navigational_group }}"
     mode: "0710"
 
-- name: Create {{ vault_dir }}/secrets/mongo directory
+- name: Create {{ vault_dir }}/certs/mongo directory
   file:
     path: "{{ vault_dir }}/certs/mongo"
     state: directory

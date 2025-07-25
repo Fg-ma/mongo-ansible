@@ -27,7 +27,7 @@
   register: rs_initiate_result
   failed_when: rs_initiate_result.rc != 0 and '"already initialized"' not in rs_initiate_result.stderr
   become: true
-  become_user: mongovaultagent
+  become_user: "{{ mongo_vault_agent_user }}"
 
 - name: Wait for primary election
   shell: >
@@ -35,7 +35,7 @@
     --quiet --eval 'while(rs.status().myState != 1) { sleep(1000); }'
   run_once: true
   become: true
-  become_user: mongovaultagent
+  become_user: "{{ mongo_vault_agent_user }}"
 
 - name: Add other members to the replica set
   shell: >
@@ -50,7 +50,7 @@
     server_id: "{{ idx + 1 }}"
   run_once: true
   become: true
-  become_user: mongovaultagent
+  become_user: "{{ mongo_vault_agent_user }}"
   delegate_to: "{{ primary_node }}"
 
 - name: Disable Mongo telemetry
@@ -59,7 +59,7 @@
     --eval 'disableTelemetry()'
   run_once: true
   become: true
-  become_user: mongovaultagent
+  become_user: "{{ mongo_vault_agent_user }}"
 
 - name: Create admin user
   shell: >
@@ -67,4 +67,4 @@
     --eval 'db.getSiblingDB("admin").createUser({ user: "admin", pwd: "{{ mongo_admin.password }}", roles: [ { role: "root", db: "admin" } ] })'
   run_once: true
   become: true
-  become_user: mongovaultagent
+  become_user: "{{ mongo_vault_agent_user }}"

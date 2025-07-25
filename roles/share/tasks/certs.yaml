@@ -23,7 +23,7 @@
     creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.csr"
   become: true
 
-- name: Install mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.cnf
+- name: Install mongodb.cnf
   template:
     src: mongodb.cnf.j2
     dest: "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.cnf"
@@ -31,14 +31,14 @@
     group: "{{ mongo_vault_agent_group }}"
     mode: "0640"
 
-- name: Generate mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }} private key
+- name: Generate mongodb private key
   command: >
     openssl genrsa -out {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.key 4096
   args:
     creates: "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.key"
   become: true
 
-- name: Generate mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }} CSR
+- name: Generate mongodb CSR
   command: >
     openssl req -new 
     -key {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.key
@@ -93,7 +93,7 @@
     creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.crt"
   become: true
 
-- name: Sign mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }} CSR to create mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }} certificate
+- name: Sign mongodb CSR to create mongodb certificate
   command: >
     openssl x509 -req
     -in {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.csr
@@ -109,11 +109,12 @@
     creates: "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.crt"
   become: true
 
-- name: Concatenate mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }} crt and mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }} key into mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }} pem
+- name: Concatenate and strip whitespace
   shell: |
-    cat "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.crt" \
-        "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.key" \
-        > "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem"
+    awk 'NF' \
+      "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.crt" \
+      "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.key" \
+      > "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem"
   args:
     creates: "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem"
   become: true
@@ -185,7 +186,7 @@
         mount_point: secret
         path: "mongo/{{ ip }}/{{ item.item.suffix }}"
         data:
-          content: "{{ item.content | b64decode }}"
+          content: "{{ item.content | b64decode | trim }}"
       loop: "{{ mongo_slurped.results }}"
       loop_control:
         label: "{{ item.item.suffix }}"

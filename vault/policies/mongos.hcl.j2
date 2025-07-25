@@ -1,0 +1,7 @@
+path "auth/approle/login" {
+  capabilities = ["create"]
+}
+
+path "secret/data/mongos/{{ hostvars[inventory_hostname]['ansible_host'] }}/pem" {
+  capabilities = ["read"]
+}

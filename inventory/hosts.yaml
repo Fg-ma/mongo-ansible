@@ -46,9 +46,9 @@ all:
 
     mongos_routers:
       hosts:
-        tableTopNode1:
+        # tableTopNode1:
         tableTopNode2:
-        tableTopNode3:
+        # tableTopNode3:
 
     remove_mongos_routers:
       hosts:

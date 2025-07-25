@@ -29,3 +29,15 @@ path "secret/data/mongo/*" {
 path "secret/metadata/mongo/*" {
   capabilities = ["delete", "list"]
 }
+
+path "secret/data/mongos/" {
+  capabilities = ["list"]
+}
+
+path "secret/data/mongos/*" {
+  capabilities = ["create", "update", "delete", "list"]
+}
+
+path "secret/metadata/mongos/*" {
+  capabilities = ["delete", "list"]
+}

@@ -1,22 +1,14 @@
-- name: Create MongoDB log/conf directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ mongo_vault_agent_user }}"
-    group: "{{ mongo_vault_agent_group }}"
-    mode: "0750"
-  loop:
-    - "{{ mongo_base_dir }}/mongos/logs"
-    - "{{ mongo_base_dir }}/mongos/conf"
+- name: Include mkdirs tasks
+  import_tasks: mkdirs.yaml
 
-- name: Create empty mongos.pid file
-  file:
-    path: "{{ mongo_base_dir }}/mongos/logs/mongos.pid"
-    state: touch
-    owner: "{{ mongo_vault_agent_user }}"
-    group: "{{ mongo_vault_agent_group }}"
-    mode: "0640"
-  become: true
+- name: Include certs tasks
+  import_tasks: certs.yaml
+
+- name: Include apparmor tasks
+  import_tasks: apparmor.yaml
+
+- name: Include vault tasks
+  import_tasks: vault.yaml
 
 - name: Render mongod “auth” config file
   template:

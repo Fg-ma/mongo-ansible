@@ -1,4 +1,2 @@
 repl_set_name: cfgRS1
 cluster_role: configsvr
-config_port: 27019
-primary_node: 10.40.0.101

@@ -6,11 +6,11 @@ distinguished_name  = dn
 req_extensions      = req_ext
 
 [ dn ]
-C  = US
-ST = State
-L  = City
-O  = tableTop
-OU = Vault Client
+C = {{ cert_country }}
+ST = {{ cert_state }}
+L = {{ cert_locality }}
+O = {{ cert_organization }}
+OU = VaultClient
 CN = {{ inventory_hostname }}
 
 [ req_ext ]

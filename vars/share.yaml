@@ -17,3 +17,15 @@ hashi_vault_port: 8200
 mongo_admin_secret_path: "secret/data/mongo/admin"
 ca_key_secret_path: "secret/data/tableTop/ca.key"
 vault_url: "https://10.10.0.100:8200"
+primary_node: 10.40.0.101
+
+# Ports
+config_port: 27019
+shard_port: 27020
+mongos_port: 27021
+
+# certs
+cert_country: US
+cert_state: FL
+cert_locality: CNTL
+cert_organization: TableTop
