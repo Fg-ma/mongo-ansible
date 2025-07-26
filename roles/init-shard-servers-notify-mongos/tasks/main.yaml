@@ -8,22 +8,17 @@
   loop: "{{ groups['shard_servers'] }}"
   ignore_errors: true
 
-- name: Include vault_fetcher role
-  include_role:
-    name: vault-fetcher
-  vars:
-    fetcher_secret_var_name: "mongo_admin"
-    fetcher_secret_path: "{{ mongo_admin_secret_path }}"
-    fetcher_vault_token: "{{ vault_token }}"
-    fetcher_vault_url: "{{ vault_url }}"
-    fetcher_ca_path: "{{ local_ca_path }}"
-    fetcher_engine_version: 2
-
 - name: Add shard to cluster
   become: true
   command: >
     {{ mongo_base_dir }}/bin/mongosh
-    "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@{{ mongos_node }}:{{ mongos_port }}/admin?tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem&directConnection=true"
+    --host {{ mongos_node }}
+    --port {{ mongos_port }}
+    --tls
+    --tlsCAFile {{ vault_dir }}/authorities/ca.pem
+    --tlsCertificateKeyFile {{ vault_dir }}/secrets/mongos/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem
+    --authenticationMechanism MONGODB-X509
+    --authenticationDatabase '$external'
     --eval '
       const replSet = "{{ repl_set_name }}";
       const hosts = [

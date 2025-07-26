@@ -20,6 +20,7 @@
   network inet6 dgram,
   network netlink raw,
   unix (send, receive) type=stream,
+  signal (receive) peer=unconfined,
 
   ## ─── Dev nodes ─────────────────────────────────────────────
   /dev/urandom r,

@@ -73,7 +73,7 @@
     awk 'NF' \
       "{{ vault_dir }}/secrets/mongos/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.crt" \
       "{{ vault_dir }}/secrets/mongos/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.key" \
-      > "{{ vault_dir }}/secrets/mongosmongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem"
+      > "{{ vault_dir }}/secrets/mongos/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem"
   args:
     creates: "{{ vault_dir }}/secrets/mongos/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem"
   become: true
@@ -114,7 +114,7 @@
                | map(attribute='item.path')
                | list) | join(', ') }}
       when: not (mongos_artifact_stats.results | map(attribute='stat.exists') | min)
-      no_log: true
+      # no_log: true
 
     - name: Slurp Mongos TLS artifacts (read from remote host)
       become: true

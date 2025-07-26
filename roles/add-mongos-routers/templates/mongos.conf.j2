@@ -17,7 +17,6 @@ sharding:
   configDB: {{ config_repl_set_name }}/{{ config_server_hosts | join(',') }}
 
 security:
-  authorization: enabled
   clusterAuthMode: x509
 
 setParameter:

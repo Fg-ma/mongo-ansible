@@ -15,7 +15,10 @@
     --eval '
       db.getSiblingDB("$external").createUser({
         user: "CN={{ hostvars[item]["ansible_host"] }},OU=MongoClient,O={{ cert_organization }},L={{ cert_locality }},ST={{ cert_state }},C={{ cert_country }}",
-        roles: [{ role: "root", db: "admin" }]
+        roles: [
+          { role: "root", db: "admin" },
+          { role: "__system", db: "admin" }
+        ]
       })
     '
   loop: "{{ groups['mongos_routers'] }}"
