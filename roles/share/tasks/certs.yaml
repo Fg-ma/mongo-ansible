@@ -1,226 +1,169 @@
-- name: Install vaultServerClient.cnf
-  template:
-    src: vaultServerClient.cnf.j2
-    dest: "{{ vault_dir }}/certs/mongo/vaultServerClient.cnf"
-    owner: "{{ mongo_certs_user }}"
-    group: "{{ mongo_certs_group }}"
-    mode: "0640"
+- name: Check if vaultServerClient.crt exists
+  ansible.builtin.stat:
+    path: "{{ vault_dir }}/certs/mongo/vaultServerClient.crt"
+  register: vault_key_stat
 
-- name: Generate vaultServerClient private key
-  command: >
-    openssl genrsa -out {{ vault_dir }}/certs/mongo/vaultServerClient.key 4096
-  args:
-    creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.key"
-  become: true
-
-- name: Generate vaultServerClient CSR
-  command: >
-    openssl req -new 
-    -key {{ vault_dir }}/certs/mongo/vaultServerClient.key
-    -out {{ vault_dir }}/certs/mongo/vaultServerClient.csr
-    -config {{ vault_dir }}/certs/mongo/vaultServerClient.cnf
-  args:
-    creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.csr"
-  become: true
-
-- name: Install mongodb.cnf
-  template:
-    src: mongodb.cnf.j2
-    dest: "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.cnf"
-    owner: "{{ mongo_vault_agent_user }}"
-    group: "{{ mongo_vault_agent_group }}"
-    mode: "0640"
-
-- name: Generate mongodb private key
-  command: >
-    openssl genrsa -out {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.key 4096
-  args:
-    creates: "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.key"
-  become: true
-
-- name: Generate mongodb CSR
-  command: >
-    openssl req -new 
-    -key {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.key
-    -out {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.csr
-    -config {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.cnf
-  args:
-    creates: "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.csr"
-  become: true
-
-- name: Include vault_fetcher role
-  include_role:
-    name: vault-fetcher
-  vars:
-    fetcher_secret_var_name: "ca_key_dict"
-    fetcher_secret_path: "{{ ca_key_secret_path }}"
-    fetcher_vault_token: "{{ vault_token }}"
-    fetcher_vault_url: "{{ vault_url }}"
-    fetcher_ca_path: "{{ local_ca_path }}"
-    fetcher_engine_version: 2
-
-- name: Write CA key to a secure temporary file
-  tempfile:
-    state: file
-    suffix: ".key"
-  register: temp_ca_key
-
-- name: Set permissions on temporary CA key file
-  file:
-    path: "{{ temp_ca_key.path }}"
-    mode: "0600"
-
-- name: Write the CA key content to temp file
-  copy:
-    content: "{{ ca_key_dict.value }}"
-    dest: "{{ temp_ca_key.path }}"
-    mode: "0600"
-  no_log: true
-
-- name: Sign vaultServerClient CSR to create vaultServerClient certificate
-  command: >
-    openssl x509 -req
-    -in {{ vault_dir }}/certs/mongo/vaultServerClient.csr
-    -CA {{ vault_dir }}/authorities/ca.pem
-    -CAkey {{ temp_ca_key.path }}
-    -CAcreateserial
-    -out {{ vault_dir }}/certs/mongo/vaultServerClient.crt
-    -days 365
-    -sha256
-    -extfile {{ vault_dir }}/certs/mongo/vaultServerClient.cnf
-    -extensions req_ext
-  args:
-    creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.crt"
-  become: true
-
-- name: Sign mongodb CSR to create mongodb certificate
-  command: >
-    openssl x509 -req
-    -in {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.csr
-    -CA {{ vault_dir }}/authorities/ca.pem
-    -CAkey {{ temp_ca_key.path }}
-    -CAcreateserial
-    -out {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.crt
-    -days 365
-    -sha256
-    -extfile {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.cnf
-    -extensions req_ext
-  args:
-    creates: "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.crt"
-  become: true
-
-- name: Concatenate and strip whitespace
-  shell: |
-    awk 'NF' \
-      "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.crt" \
-      "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.key" \
-      > "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem"
-  args:
-    creates: "{{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem"
-  become: true
-
-- name: Delete temporary CA key file
-  file:
-    path: "{{ temp_ca_key.path }}"
-    state: absent
-  no_log: true
-
-- name: Fix ownership/permissions of certs
-  file:
-    path: "{{ item }}"
-    owner: "{{ mongo_certs_user }}"
-    group: "{{ mongo_certs_group }}"
-    mode: "0640"
-  loop:
-    - "{{ vault_dir }}/certs/mongo/vaultServerClient.key"
-    - "{{ vault_dir }}/certs/mongo/vaultServerClient.crt"
-    - "{{ vault_dir }}/certs/mongo/vaultServerClient.csr"
-
-- name: Upload Mongo TLS artifacts for this host to Vault (separate secrets, API, no CLI)
-  vars:
-    ip: "{{ hostvars[inventory_hostname].ansible_host }}"
-    mongo_prefix: "{{ vault_dir }}/secrets/mongo/mongodb-{{ ip }}"
-    mongo_files:
-      - { suffix: cnf, path: "{{ mongo_prefix }}.cnf" }
-      - { suffix: csr, path: "{{ mongo_prefix }}.csr" }
-      - { suffix: key, path: "{{ mongo_prefix }}.key" }
-      - { suffix: crt, path: "{{ mongo_prefix }}.crt" }
-      - { suffix: pem, path: "{{ mongo_prefix }}.pem" }
+- name: Generate vaultServerClient certs and key
   block:
-    - name: Stat Mongo TLS artifacts
-      become: true
-      ansible.builtin.stat:
-        path: "{{ item.path }}"
-      loop: "{{ mongo_files }}"
-      register: mongo_artifact_stats
-      loop_control:
-        label: "{{ item.suffix }}"
-      no_log: true
+    - name: Install vaultServerClient.cnf
+      template:
+        src: vaultServerClient.cnf.j2
+        dest: "{{ vault_dir }}/certs/mongo/vaultServerClient.cnf"
+        owner: "{{ mongo_certs_user }}"
+        group: "{{ mongo_certs_group }}"
+        mode: "0640"
 
-    - name: Fail if any artifact missing
-      ansible.builtin.fail:
-        msg: >-
-          Missing Mongo artifact(s):
-          {{ (mongo_artifact_stats.results
-               | rejectattr('stat.exists','bool')
-               | map(attribute='item.path')
-               | list) | join(', ') }}
-      when: not (mongo_artifact_stats.results | map(attribute='stat.exists') | min)
-      no_log: true
-
-    - name: Slurp Mongo TLS artifacts (read from remote host)
-      become: true
-      ansible.builtin.slurp:
-        src: "{{ item.path }}"
-      loop: "{{ mongo_files }}"
-      register: mongo_slurped
-      loop_control:
-        label: "{{ item.suffix }}"
-      no_log: true
-
-    - name: Upload each artifact to Vault (API call)
-      community.hashi_vault.vault_kv2_write:
-        url: "{{ vault_url }}"
-        token: "{{ vault_token }}"
-        ca_cert: "{{ local_ca_path }}"
-        mount_point: secret
-        path: "mongo/{{ ip }}/{{ item.item.suffix }}"
-        data:
-          content: "{{ item.content | b64decode | trim }}"
-      loop: "{{ mongo_slurped.results }}"
-      loop_control:
-        label: "{{ item.item.suffix }}"
-      delegate_to: localhost
-      run_once: false
-      register: vault_write_each
-      no_log: true
-
-  rescue:
-    - name: Upload failed — local files retained
-      ansible.builtin.debug:
-        msg: "Vault upload FAILED for {{ inventory_hostname }}; artifacts NOT deleted."
-
-  always:
-    - name: Define mongo_artifact_paths
-      set_fact:
-        mongo_artifact_paths: "{{ mongo_files | map(attribute='path') | list }}"
-
-    - name: Attempt secure wipe (if shred available)
-      become: true
-      ansible.builtin.shell: |
-        if command -v shred >/dev/null 2>&1 && [ -f {{ item | quote }} ]; then
-          shred --force --zero --remove {{ item | quote }} || true
-        fi
-      loop: "{{ mongo_artifact_paths }}"
+    - name: Generate vaultServerClient private key
+      command: >
+        openssl genrsa -out {{ vault_dir }}/certs/mongo/vaultServerClient.key 4096
       args:
-        executable: /bin/bash
-      changed_when: false
+        creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.key"
+      become: true
+
+    - name: Generate vaultServerClient CSR
+      command: >
+        openssl req -new 
+        -key {{ vault_dir }}/certs/mongo/vaultServerClient.key
+        -out {{ vault_dir }}/certs/mongo/vaultServerClient.csr
+        -config {{ vault_dir }}/certs/mongo/vaultServerClient.cnf
+      args:
+        creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.csr"
+      become: true
+
+    - name: Include vault_fetcher role
+      include_role:
+        name: vault-fetcher
+      vars:
+        fetcher_secret_var_name: "ca_key_dict"
+        fetcher_secret_path: "{{ ca_key_secret_path }}"
+        fetcher_vault_token: "{{ vault_token }}"
+        fetcher_vault_url: "{{ vault_url }}"
+        fetcher_ca_path: "{{ local_ca_path }}"
+        fetcher_engine_version: 2
+
+    - name: Write CA key to a secure temporary file
+      tempfile:
+        state: file
+        suffix: ".key"
+      register: temp_ca_key
+
+    - name: Set permissions on temporary CA key file
+      file:
+        path: "{{ temp_ca_key.path }}"
+        mode: "0600"
+
+    - name: Write the CA key content to temp file
+      copy:
+        content: "{{ ca_key_dict.content }}"
+        dest: "{{ temp_ca_key.path }}"
+        mode: "0600"
       no_log: true
 
-    - name: Ensure artifact file absent
+    - name: Decrypt encrypted CA key
+      command: >
+        openssl rsa
+        -in {{ temp_ca_key.path }}
+        -out {{ temp_ca_key.path }}.decrypted.key
+        -passin pass:{{ ca_key_password }}
+
+    - name: Sign vaultServerClient CSR to create vaultServerClient certificate
+      command: >
+        openssl x509 -req
+        -in {{ vault_dir }}/certs/mongo/vaultServerClient.csr
+        -CA {{ vault_dir }}/authorities/ca.pem
+        -CAkey {{ temp_ca_key.path }}.decrypted.key
+        -CAcreateserial
+        -out {{ vault_dir }}/certs/mongo/vaultServerClient.crt
+        -days 365
+        -sha256
+        -extfile {{ vault_dir }}/certs/mongo/vaultServerClient.cnf
+        -extensions req_ext
+      args:
+        creates: "{{ vault_dir }}/certs/mongo/vaultServerClient.crt"
       become: true
-      ansible.builtin.file:
-        path: "{{ item }}"
+
+    - name: Delete temporary CA key file
+      file:
+        path: "{{ temp_ca_key.path }}"
         state: absent
-      loop: "{{ mongo_artifact_paths }}"
       no_log: true
+
+    - name: Delete temporary Decrypted CA key file
+      file:
+        path: "{{ temp_ca_key.path }}.pk8"
+        state: absent
+      no_log: true
+
+    - name: Fix ownership/permissions of certs
+      file:
+        path: "{{ item }}"
+        owner: "{{ mongo_certs_user }}"
+        group: "{{ mongo_certs_group }}"
+        mode: "0640"
+      loop:
+        - "{{ vault_dir }}/certs/mongo/vaultServerClient.key"
+        - "{{ vault_dir }}/certs/mongo/vaultServerClient.crt"
+        - "{{ vault_dir }}/certs/mongo/vaultServerClient.csr"
+  when: not vault_key_stat.stat.exists
+  become: true
+  become_user: root
+
+- name: Check if mongo role exists
+  community.hashi_vault.vault_read:
+    url: "{{ vault_url }}"
+    token: "{{ vault_token }}"
+    path: "pki/roles/mongo-{{ hostvars[inventory_hostname].ansible_host }}"
+  register: mongo_role
+  environment:
+    REQUESTS_CA_BUNDLE: "{{ local_ca_path }}"
+  delegate_to: localhost
+  ignore_errors: true
+
+- name: Define PKI role for mongo certs
+  community.hashi_vault.vault_write:
+    url: "{{ vault_url }}"
+    token: "{{ vault_token }}"
+    mount_point: ""
+    path: "pki/roles/mongo-{{ hostvars[inventory_hostname].ansible_host }}"
+    data:
+      name: "mongo-{{ hostvars[inventory_hostname].ansible_host }}"
+      allowed_domains:
+        - "{{ inventory_hostname }}.mongo"
+        - "{{ hostvars[inventory_hostname].ansible_host }}"
+      key_type: "rsa"
+      key_bits: 4096
+      country:
+        - "{{ cert_country }}"
+      province:
+        - "{{ cert_state }}"
+      locality:
+        - "{{ cert_locality }}"
+      organization:
+        - "{{ cert_organization }}"
+      ou:
+        - "MongoInternalCluster"
+      common_name: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+      exclude_cn_from_sans: true
+      allow_bare_domains: true
+      alt_names:
+        - "{{ inventory_hostname }}.mongo"
+      ip_sans:
+        - "{{ hostvars[inventory_hostname].ansible_host }}"
+      allow_ip_sans: true
+      allow_localhost: false
+      server_flag: true
+      client_flag: true
+      key_usage:
+        - DigitalSignature
+        - KeyEncipherment
+      ext_key_usage:
+        - server_auth
+        - client_auth
+      ttl: "12h"
+      max_ttl: "12h"
+      renew_before: "1h"
+  when: mongo_role.failed
+  environment:
+    REQUESTS_CA_BUNDLE: "{{ local_ca_path }}"
+  delegate_to: localhost
+  no_log: true

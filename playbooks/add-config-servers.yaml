@@ -5,6 +5,9 @@
     - name: vault_token
       prompt: "Enter Vault access token"
       private: true
+    - name: ca_key_password
+      prompt: "Enter CA key password"
+      private: true
   vars_files:
     - ../vars/share.yaml
     - ../vars/config_servers.yaml

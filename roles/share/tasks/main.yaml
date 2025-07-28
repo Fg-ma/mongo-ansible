@@ -4,14 +4,8 @@
 - name: Include mkdirs tasks
   import_tasks: mkdirs.yaml
 
-- name: Check if vaultServerClient.crt exists
-  ansible.builtin.stat:
-    path: "{{ vault_dir }}/certs/mongo/vaultServerClient.crt"
-  register: vault_key_stat
-
 - name: Include certs tasks
   import_tasks: certs.yaml
-  when: not vault_key_stat.stat.exists
 
 - name: Include binaries tasks
   import_tasks: binaries.yaml

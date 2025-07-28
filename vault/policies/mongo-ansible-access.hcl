@@ -41,3 +41,35 @@ path "secret/data/mongos/*" {
 path "secret/metadata/mongos/*" {
   capabilities = ["delete", "list"]
 }
+
+# PKI Engine Access
+path "pki/roles/*" {
+  capabilities = ["create", "update", "read", "list"]
+}
+path "pki/issue/*" {
+  capabilities = ["create", "update", "read", "list"]
+}
+path "pki/sign/*" {
+  capabilities = ["create", "update"]
+}
+path "pki/revoke" {
+  capabilities = ["update"]
+}
+path "pki/certs/*" {
+  capabilities = ["read", "list"]
+}
+path "pki/issuers" {
+  capabilities = ["read", "list"]
+}
+path "pki/keys/*" {
+  capabilities = ["read", "list"]
+}
+
+# Allow modifying PKI configuration if needed
+path "pki/config/*" {
+  capabilities = ["read", "update"]
+}
+
+path "roles/*" {
+  capabilities = ["create", "update", "read", "list"]
+}
