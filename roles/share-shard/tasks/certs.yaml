@@ -1,25 +1,14 @@
-- name: Check if mongos role exists
-  community.hashi_vault.vault_read:
-    url: "{{ vault_url }}"
-    token: "{{ vault_token }}"
-    path: "pki/roles/mongos-{{ hostvars[inventory_hostname].ansible_host }}"
-  register: mongos_role
-  environment:
-    REQUESTS_CA_BUNDLE: "{{ local_ca_path }}"
-  delegate_to: localhost
-  ignore_errors: true
-
-- name: Define PKI role for mongos certs
+- name: Define PKI role for mongo certs
   community.hashi_vault.vault_write:
     url: "{{ vault_url }}"
     token: "{{ vault_token }}"
     mount_point: ""
-    path: "pki/roles/mongos-{{ hostvars[inventory_hostname].ansible_host }}"
+    path: "pki/roles/mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     data:
-      name: "mongos-{{ hostvars[inventory_hostname].ansible_host }}"
+      name: "mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       allowed_domains:
         - "{{ inventory_hostname }}.mongo"
-        - "{{ hostvars[inventory_hostname].ansible_host }}"
+        - "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       key_type: "rsa"
       key_bits: 4096
       country:
@@ -31,14 +20,14 @@
       organization:
         - "{{ cert_organization }}"
       ou:
-        - "MongoClient"
-      common_name: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+        - "MongoShardInternalCluster"
+      common_name: "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       exclude_cn_from_sans: true
       allow_bare_domains: true
       alt_names:
         - "{{ inventory_hostname }}.mongo"
       ip_sans:
-        - "{{ hostvars[inventory_hostname].ansible_host }}"
+        - "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       allow_ip_sans: true
       allow_localhost: false
       server_flag: true
@@ -47,11 +36,11 @@
         - DigitalSignature
         - KeyEncipherment
       ext_key_usage:
+        - server_auth
         - client_auth
       ttl: "12h"
       max_ttl: "12h"
       renew_before: "1h"
-  when: mongos_role.failed
   environment:
     REQUESTS_CA_BUNDLE: "{{ local_ca_path }}"
   delegate_to: localhost

@@ -74,8 +74,7 @@
 
   ## ─── Vault secrets ───────────────────────────────────────────
   {{ vault_dir }}/authorities/ca.pem r,
-  {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem r,
-  {{ vault_dir }}/secrets/mongos/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem r,
+  {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem r,
 
   ## ─── Shared Libraries ────────────────────────────────────────
   /usr/lib/x86_64-linux-gnu/libcurl.so.* mr,

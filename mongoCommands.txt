@@ -1,11 +1,11 @@
 // Config server login
-sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@10.40.0.101:27019,10.40.0.102:27019,10.40.0.103:27019/admin?replicaSet=cfgRS1&tls=true&tlsCAFile=/mnt/vault/authorities/ca.pem&tlsCertificateKeyFile=/mnt/vault/secrets/mongo/mongodb.pem"
+sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@10.60.0.101:27019,10.60.0.102:27019,10.60.0.103:27019/admin?replicaSet=cfgRS1&tls=true&tlsCAFile=/mnt/vault/authorities/ca.pem&tlsCertificateKeyFile=/mnt/vault/secrets/mongo/mongo/mongodb.pem"
 
 // Shard server login
-sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@10.40.0.101:27020,10.40.0.102:27020,10.40.0.103:27020/admin?replicaSet=shardRS1&tls=true&tlsCAFile=/mnt/vault/authorities/ca.pem&tlsCertificateKeyFile=/mnt/vault/secrets/mongo/mongodb.pem"
+sudo -u mongovaultagent bin/mongosh "mongodb://admin:password@10.50.0.101:27020,10.50.0.102:27020,10.50.0.103:27020/admin?replicaSet=shardRS1&tls=true&tlsCAFile=/mnt/vault/authorities/ca.pem&tlsCertificateKeyFile=/mnt/vault/secrets/mongo/mongo/mongodb.pem"
 
 // Mongos server login
-sudo -u mongovaultagent bin/mongosh   --host 10.40.0.101   --port 27021   --tls   --tlsCertificateKeyFile /mnt/vault/secrets/mongos/mongos-10.40.0.101.pem   --tlsCAFile /mnt/vault/authorities/ca.pem   --authenticationMechanism MONGODB-X509   --authenticationDatabase '$external'
+sudo -u mongovaultagent bin/mongosh   --host 10.40.0.101   --port 27021   --tls   --tlsCertificateKeyFile /mnt/vault/secrets/mongo/mongos/mongos-10.40.0.101.pem   --tlsCAFile /mnt/vault/authorities/ca.pem   --authenticationMechanism MONGODB-X509   --authenticationDatabase '$external'
 
 
 // Format new mongo node
@@ -31,9 +31,9 @@ sudo rm -rf /etc/apparmor.d/mnt.mongo.bin.mongosh
 sudo systemctl stop fetch-vault-mongo-approle-ids.service
 sudo systemctl disable fetch-vault-mongo-approle-ids.service
 sudo rm -rf /etc/systemd/system/fetch-vault-mongo-approle-ids.service
-sudo systemctl stop mongo-vault-agent.service
-sudo systemctl disable mongo-vault-agent.service
-sudo rm -rf /etc/systemd/system/mongo-vault-agent.service
+sudo systemctl stop mongo-config-vault-agent.service
+sudo systemctl disable mongo-config-vault-agent.service
+sudo rm -rf /etc/systemd/system/mongo-config-vault-agent.service
 sudo rm -rf /etc/sudoers.d/vaultagent-mongo
 sudo pkill -f vault-agent
 sudo systemctl daemon-reload
@@ -138,7 +138,7 @@ sudo journalctl -e | grep DENIED
 
 sudo apparmor_parser -r /etc/apparmor.d/mnt.vault.bin.vault
 sudo aa-enforce mnt.vault.bin.vault
-sudo systemctl restart mongo-vault-agent
+sudo systemctl restart mongo-config-vault-agent
 sudo journalctl -e | grep DENIED
 
 sudo apparmor_parser -r /etc/apparmor.d/mnt.vault.bin.vault_requests

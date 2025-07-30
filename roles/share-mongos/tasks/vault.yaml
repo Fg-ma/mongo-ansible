@@ -1,6 +1,6 @@
-- name: Create empty vault-agent.pid file
+- name: Create empty mongos-vault-agent.pid file
   file:
-    path: "{{ vault_dir }}/agents/mongos/vault-agent.pid"
+    path: "{{ vault_dir }}/agents/mongo/mongos/mongos-vault-agent.pid"
     state: touch
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
@@ -12,11 +12,11 @@
     - name: "Render Vault policy for mongos-approle-reader"
       template:
         src: "{{ playbook_dir }}/../vault/policies/mongos-approle-reader.hcl.j2"
-        dest: "/tmp/mongos-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+        dest: "/tmp/mongos-approle-reader-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
 
     - name: "Read rendered mongos-approle-reader policy file"
       slurp:
-        src: "/tmp/mongos-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+        src: "/tmp/mongos-approle-reader-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
       register: slurped_mongos_approle_reader_policy
 
     - name: "Upload mongos-approle-reader policy to vault"
@@ -24,7 +24,7 @@
       community.hashi_vault.vault_write:
         url: "{{ vault_url }}"
         token: "{{ vault_token }}"
-        path: "sys/policies/acl/mongos-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}"
+        path: "sys/policies/acl/mongos-approle-reader-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
         ca_cert: "{{ local_ca_path }}"
         data:
           policy: "{{ slurped_mongos_approle_reader_policy.content | b64decode }}"
@@ -32,11 +32,11 @@
     - name: "Render Vault policy for mongos"
       template:
         src: "{{ playbook_dir }}/../vault/policies/mongos.hcl.j2"
-        dest: "/tmp/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+        dest: "/tmp/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
 
     - name: "Read rendered mongos policy file"
       slurp:
-        src: "/tmp/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+        src: "/tmp/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
       register: slurped_mongos_policy
 
     - name: "Upload mongos policy to vault"
@@ -44,7 +44,7 @@
       community.hashi_vault.vault_write:
         url: "{{ vault_url }}"
         token: "{{ vault_token }}"
-        path: "sys/policies/acl/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}"
+        path: "sys/policies/acl/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
         ca_cert: "{{ local_ca_path }}"
         data:
           policy: "{{ slurped_mongos_policy.content | b64decode }}"
@@ -52,12 +52,12 @@
   always:
     - name: "Clean up temporary policy file"
       file:
-        path: "/tmp/mongos-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+        path: "/tmp/mongos-approle-reader-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
         state: absent
 
     - name: "Clean up temporary policy file"
       file:
-        path: "/tmp/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.hcl"
+        path: "/tmp/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
         state: absent
 
 - name: "Create AppRole for node"
@@ -65,33 +65,33 @@
   community.hashi_vault.vault_write:
     url: "{{ vault_url }}"
     token: "{{ vault_token }}"
-    path: "auth/approle/role/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}"
+    path: "auth/approle/role/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     ca_cert: "{{ local_ca_path }}"
     data:
-      token_policies: "mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}"
+      token_policies: "mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       token_ttl: "1h"
       token_max_ttl: "4h"
 
-- name: Copy Vault Agent config
+- name: Copy Mongos Vault Agent
   template:
     src: "{{ playbook_dir }}/../vault/agents/mongos-agent-config.hcl.j2"
-    dest: "{{ vault_dir }}/agents/mongos/mongos-agent-config.hcl"
+    dest: "{{ vault_dir }}/agents/mongo/mongos/mongos-agent-config.hcl"
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
     mode: "0400"
 
-- name: Deploy rendered Vault Agent mongodb.pem.ctmpl template
+- name: Deploy rendered Vault Agent mongos.pem.ctmpl template
   template:
     src: "{{ playbook_dir }}/../vault/templates/mongos.pem.ctmpl.j2"
-    dest: "{{ vault_dir }}/templates/mongos/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem.ctmpl"
+    dest: "{{ vault_dir }}/templates/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem.ctmpl"
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
     mode: "0400"
 
-- name: Install mongosApproleVR.conf
+- name: Install mongos-approle-vault-server-request.conf
   template:
-    src: mongosApproleVR.conf.j2
-    dest: "{{ mongo_base_dir }}/conf/mongosApproleVR.conf"
+    src: mongos-approle-vault-server-request.conf.j2
+    dest: "{{ mongo_base_dir }}/conf/mongos-approle-vault-server-request.conf"
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
     mode: "0440"
@@ -99,7 +99,7 @@
 - name: Install fetch-vault-mongos-approle-ids script
   template:
     src: fetch-vault-mongos-approle-ids.sh.j2
-    dest: "{{ vault_dir }}/scripts/mongos/fetch-vault-mongos-approle-ids.sh"
+    dest: "{{ vault_dir }}/scripts/mongo/mongos/fetch-vault-mongos-approle-ids.sh"
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
     mode: "0550"
@@ -117,7 +117,7 @@
       User=root
       Group={{ vault_agent_bin_group }}
       Type=oneshot
-      ExecStart={{ vault_dir }}/scripts/mongos/fetch-vault-mongos-approle-ids.sh
+      ExecStart={{ vault_dir }}/scripts/mongo/mongos/fetch-vault-mongos-approle-ids.sh
       RemainAfterExit=yes
 
       [Install]
@@ -127,7 +127,7 @@
 - name: Install restart-mongos-services script
   template:
     src: mongos-vault-restart.sh.j2
-    dest: "{{ vault_dir }}/scripts/mongos/mongos-vault-restart.sh"
+    dest: "{{ vault_dir }}/scripts/mongo/mongos/mongos-vault-restart.sh"
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ mongo_vault_agent_group }}"
     mode: "0550"
@@ -144,9 +144,9 @@
       [Service]
       User={{ mongo_vault_agent_user }}
       Group={{ mongo_vault_agent_group }}
-      ExecStart={{ vault_dir }}/bin/vault agent -config={{ vault_dir }}/agents/mongos/mongos-agent-config.hcl
+      ExecStart={{ vault_dir }}/bin/vault agent -config={{ vault_dir }}/agents/mongo/mongos/mongos-agent-config.hcl
       Restart=on-failure
-      PIDFile={{ vault_dir }}/agents/mongos/mongos-vault-agent.pid
+      PIDFile={{ vault_dir }}/agents/mongo/mongos/mongos-vault-agent.pid
 
       [Install]
       WantedBy=multi-user.target

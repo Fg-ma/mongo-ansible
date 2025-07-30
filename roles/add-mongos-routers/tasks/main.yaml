@@ -1,15 +1,6 @@
 - name: Include mkdirs tasks
   import_tasks: mkdirs.yaml
 
-- name: Include certs tasks
-  import_tasks: certs.yaml
-
-- name: Include apparmor tasks
-  import_tasks: apparmor.yaml
-
-- name: Include vault tasks
-  import_tasks: vault.yaml
-
 - name: Render mongod “auth” config file
   template:
     src: mongos.conf.j2
@@ -24,8 +15,8 @@
     content: |
       [Unit]
       Description=MongoDB Shard Router
-      After=network.target mongo-vault-agent.service
-      Requires=mongo-vault-agent.service
+      After=network.target mongos-vault-agent.service
+      Requires=mongos-vault-agent.service
 
       [Service]
       User={{ mongo_vault_agent_user }}

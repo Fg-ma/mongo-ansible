@@ -20,22 +20,22 @@
     state: absent
   become: true
 
-- name: Stop mongo-vault-agent service
+- name: Stop mongos-vault-agent service
   ansible.builtin.systemd:
-    name: mongo-vault-agent.service
+    name: mongos-vault-agent.service
     state: stopped
     enabled: no
   become: true
 
 - name: Kill mongod process (ignoring failure if not running)
   command: |
-    pkill -F "{{ vault_dir }}/agents/mongo/mongo-vault-agent.pid"
+    pkill -F "{{ vault_dir }}/agents/mongo/mongos/mongos-vault-agent.pid"
   ignore_errors: true
   become: true
 
-- name: Remove mongo-vault-agent systemd service file
+- name: Remove mongos-vault-agent systemd service file
   ansible.builtin.file:
-    path: /etc/systemd/system/mongo-vault-agent.service
+    path: /etc/systemd/system/mongos-vault-agent.service
     state: absent
   become: true
 
@@ -87,6 +87,3 @@
 
 - name: Include completely-users tasks
   import_tasks: completely-users.yaml
-
-- name: Include completely-vault tasks
-  import_tasks: completely-vault.yaml

@@ -13,6 +13,7 @@
     - ../vars/config_servers.yaml
   roles:
     - role: share
+    - role: share-config
     - role: apparmor-mongod
     - role: apparmor-mongosh
     - role: init-config-servers-server-setup

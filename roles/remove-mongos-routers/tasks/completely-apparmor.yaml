@@ -10,10 +10,10 @@
     state: absent
   ignore_errors: true
 
-- name: Remove AppArmor rule for mongo-vault-restart.sh
+- name: Remove AppArmor rule for mongo-config-vault-restart.sh
   lineinfile:
     path: /etc/apparmor.d/{{ vault_apparmor_profile_name }}
-    line: "  {{ vault_dir }}/scripts/mongo/mongo-vault-restart.sh cx -> mongo-vault-restart-script,"
+    line: "  {{ vault_dir }}/scripts/mongo/config/mongo-config-vault-restart.sh cx -> mongo-config-vault-restart-script,"
     state: absent
   ignore_errors: true
 

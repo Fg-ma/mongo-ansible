@@ -13,6 +13,7 @@
     - ../vars/shard_servers.yaml
   roles:
     - role: share
+    - role: share-shards
     - role: apparmor-mongod
     - role: apparmor-mongosh
     - role: add-new-shard-servers

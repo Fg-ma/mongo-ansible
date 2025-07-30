@@ -43,8 +43,8 @@
     content: |
       [Unit]
       Description=MongoDB Config Server
-      After=network.target mongo-vault-agent.service
-      Requires=mongo-vault-agent.service
+      After=network.target mongo-config-vault-agent.service
+      Requires=mongo-config-vault-agent.service
 
       [Service]
       Type=simple
@@ -96,7 +96,7 @@
 
 - name: Wait for MongoDB port to be open
   wait_for:
-    host: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+    host: "10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     port: "{{ config_port }}"
     timeout: 60
     delay: 5

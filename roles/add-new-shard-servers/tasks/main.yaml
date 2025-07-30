@@ -43,8 +43,8 @@
     content: |
       [Unit]
       Description=MongoDB Shard Server
-      After=network.target mongo-vault-agent.service
-      Requires=mongo-vault-agent.service
+      After=network.target mongo-shard-vault-agent.service
+      Requires=mongo-shard-vault-agent.service
 
       [Service]
       Type=simple
@@ -97,7 +97,7 @@
 - name: Wait for MongoDB port to be open
   ignore_errors: true
   wait_for:
-    host: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+    host: "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     port: "{{ shard_port }}"
     timeout: 60
     delay: 5
@@ -115,7 +115,7 @@
 - name: Wait for MongoDB port to be open
   ignore_errors: true
   wait_for:
-    host: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+    host: "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     port: "{{ shard_port }}"
     timeout: 60
     delay: 5

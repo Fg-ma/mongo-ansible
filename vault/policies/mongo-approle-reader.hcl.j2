@@ -1,7 +1,0 @@
-path "auth/approle/role/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}/role-id" {
-  capabilities = ["read"]
-}
-
-path "auth/approle/role/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}/secret-id" {
-  capabilities = ["update"]
-}

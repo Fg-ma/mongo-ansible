@@ -1,7 +1,7 @@
 mongo_base_dir: /mnt/mongo
 vault_dir: /mnt/vault
 local_ca_path: "/home/fg/Desktop/tableTopSecrets/ca.pem"
-tabletop_vault_server_ip: 10.10.0.100
+tabletop_vault_server_ip: 10.5.0.100
 tabletop_vault_server_port: 2223
 mongo_certs_user: mongocerts
 mongo_certs_group: mongocerts
@@ -12,12 +12,15 @@ vault_agent_group: vaultagent
 vault_agent_navigational_group: navigationalvaultagent
 vault_agent_authorities_group: authoritiesvaultagent
 vault_agent_bin_group: binvaultagent
-vault_ip: 10.10.0.100
+vault_ip: 10.5.0.100
 hashi_vault_port: 8200
 mongo_admin_secret_path: "secret/data/mongo/admin"
 ca_key_secret_path: "secret/data/tableTop/ca.key"
-vault_url: "https://10.10.0.100:8200"
-primary_node: 10.40.0.101
+vault_url: "https://10.5.0.100:8200"
+
+# Primaries
+primary_config_node: 10.40.0.101
+primary_shard_node: 10.50.0.101
 
 # Ports
 config_port: 27019
@@ -29,3 +32,9 @@ cert_country: US
 cert_state: FL
 cert_locality: CNTL
 cert_organization: TableTop
+
+# Subnets
+admin_subnet: 5
+mongo_mongos_subnet: 40
+mongo_shard_subnet: 50
+mongo_config_subnet: 60

@@ -13,11 +13,5 @@
 - name: Include apparmor tasks
   import_tasks: apparmor.yaml
 
-- name: Check if mongo-vault-agent service is running
-  shell: systemctl is-active mongo-vault-agent
-  register: mongo_vault_agent_status
-  ignore_errors: true
-
 - name: Include vault tasks
   import_tasks: vault.yaml
-  when: mongo_vault_agent_status.stdout != "active"

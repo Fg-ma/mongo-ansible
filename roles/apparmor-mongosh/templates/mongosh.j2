@@ -81,8 +81,9 @@
 
   ## ─── Vault certificates ────────────────────────────────────
   {{ vault_dir }}/authorities/ca.pem r,
-  {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem r,
-  {{ vault_dir }}/secrets/mongos/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem r,
+  {{ vault_dir }}/secrets/mongo/config/mongo-config-10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem r,
+  {{ vault_dir }}/secrets/mongo/shard/mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem r,
+  {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo-mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem r,
 
   ## ─── TLS/CA certs system-wide ──────────────────────────────
   /etc/ssl/ r,

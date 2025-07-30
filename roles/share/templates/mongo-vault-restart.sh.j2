@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# Restart MongoDB services
-for svc in mongod-configsvr mongos mongod-shardsvr; do
-  systemctl list-units --full -all "$svc.service" | grep -Fq loaded && systemctl restart "$svc"
-done

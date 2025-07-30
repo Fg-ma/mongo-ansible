@@ -26,6 +26,7 @@
     - ../vars/mongos_routers.yaml
   roles:
     - role: share
+    - role: share-mongos
     - role: apparmor-mongos
     - role: apparmor-mongosh
     - role: add-mongos-routers

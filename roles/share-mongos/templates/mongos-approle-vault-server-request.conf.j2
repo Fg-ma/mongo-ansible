@@ -9,8 +9,8 @@ tls:
 
 request:
   id: {{ inventory_hostname }}
-  ip: {{ hostvars[inventory_hostname]['ansible_host'] }}
-  purpose: Get role_id and secret_id for mongodb secrets
+  ip: 10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}
+  purpose: Get role_id and secret_id for mongos secrets
   policies:
-    - mongo-approle-reader-{{ hostvars[inventory_hostname]['ansible_host'] }}
+    - mongos-approle-reader-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}
   num_uses: 2

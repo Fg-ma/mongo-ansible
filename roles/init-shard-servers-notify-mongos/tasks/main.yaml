@@ -1,6 +1,6 @@
 - name: Wait for all shard-server members to be reachable
   wait_for:
-    host: "{{ hostvars[item].ansible_host }}"
+    host: "10.{{ mongo_shard_subnet }}.0.{{ hostvars[item].ansible_host.split('.')[-1] }}"
     port: "{{ shard_port }}"
     timeout: 120
     delay: 5
@@ -16,14 +16,14 @@
     --port {{ mongos_port }}
     --tls
     --tlsCAFile {{ vault_dir }}/authorities/ca.pem
-    --tlsCertificateKeyFile {{ vault_dir }}/secrets/mongos/mongos-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem
+    --tlsCertificateKeyFile {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
     --authenticationMechanism MONGODB-X509
     --authenticationDatabase '$external'
     --eval '
       const replSet = "{{ repl_set_name }}";
       const hosts = [
         {% for host in groups["shard_servers"] %}
-        "{{ hostvars[host].ansible_host }}:{{ shard_port }}"{% if not loop.last %},{% endif %}
+        "10.{{ mongo_shard_subnet }}.0.{{ hostvars[host].ansible_host.split('.')[-1] }}:{{ shard_port }}"{% if not loop.last %},{% endif %}
         {% endfor %}
       ];
       const shardString = replSet + "/" + hosts.join(",");

@@ -37,7 +37,7 @@
 - name: Wait for MongoDB port to be open
   ignore_errors: true
   wait_for:
-    host: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+    host: "10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     port: "{{ config_port }}"
     timeout: 60
     delay: 5

@@ -8,10 +8,10 @@ systemLog:
 
 net:
   port: {{ shard_port }}
-  bindIp: {{ hostvars[inventory_hostname]['ansible_host'] }}
+  bindIp: 10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}
   tls:
     mode: requireTLS
-    certificateKeyFile: {{ vault_dir }}/secrets/mongo/mongodb-{{ hostvars[inventory_hostname]['ansible_host'] }}.pem
+    certificateKeyFile: {{ vault_dir }}/secrets/mongo/shard/mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
     CAFile: {{ vault_dir }}/authorities/ca.pem
     allowConnectionsWithoutCertificates: false
     allowInvalidCertificates: false

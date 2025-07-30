@@ -2,6 +2,6 @@ path "auth/approle/login" {
   capabilities = ["create"]
 }
 
-path "pki/issue/mongo-{{ hostvars[inventory_hostname]['ansible_host'] }}" {
+path "pki/issue/mongo-config-10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}" {
   capabilities = ["create", "update", "read", "list"]
 }
