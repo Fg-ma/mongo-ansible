@@ -84,7 +84,7 @@ openssl req -new -nodes \
 # 2a. Sign the CSR to produce the cert
 openssl x509 -req \
   -in .csr \
-  -CA /home/fg/Desktop/tableTopSecrets/ca.pem -CAkey /home/fg/Desktop/tableTopSecrets/ca.key -CAcreateserial \
+  -CA /home/n1/Desktop/tableTopSecrets/ca.pem -CAkey /home/n1/Desktop/tableTopSecrets/ca.key -CAcreateserial \
   -out .crt \
   -extensions v3_req -extfile .cnf \
   -days 365
