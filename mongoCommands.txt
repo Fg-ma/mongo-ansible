@@ -95,14 +95,14 @@ cat .crt .key > .pem
 # Secure it:
 chmod 600 .pem
 
-vault kv put secret/vaultServer/table-top-vault-server.crt content="$(< ./table-top-vault-server.crt)"
-vault kv put secret/vaultServer/table-top-vault-server.cnf content="$(< ./table-top-vault-server.cnf)"
-vault kv put secret/vaultServer/table-top-vault-server.key content="$(< ./table-top-vault-server.key)"
-vault kv put secret/vaultServer/table-top-vault-server.csr content="$(< ./table-top-vault-server.csr)"
-vault kv put secret/vaultServer/table-top-vault-server-nginx.crt content="$(< ./table-top-vault-server-nginx.crt)"
-vault kv put secret/vaultServer/table-top-vault-server-nginx.cnf content="$(< ./table-top-vault-server-nginx.cnf)"
-vault kv put secret/vaultServer/table-top-vault-server-nginx.key content="$(< ./table-top-vault-server-nginx.key)"
-vault kv put secret/vaultServer/table-top-vault-server-nginx.csr content="$(< ./table-top-vault-server-nginx.csr)"
+vault kv put kv/vaultServer/table-top-vault-server.crt content="$(< ./table-top-vault-server.crt)"
+vault kv put kv/vaultServer/table-top-vault-server.cnf content="$(< ./table-top-vault-server.cnf)"
+vault kv put kv/vaultServer/table-top-vault-server.key content="$(< ./table-top-vault-server.key)"
+vault kv put kv/vaultServer/table-top-vault-server.csr content="$(< ./table-top-vault-server.csr)"
+vault kv put kv/vaultServer/table-top-vault-server-nginx.crt content="$(< ./table-top-vault-server-nginx.crt)"
+vault kv put kv/vaultServer/table-top-vault-server-nginx.cnf content="$(< ./table-top-vault-server-nginx.cnf)"
+vault kv put kv/vaultServer/table-top-vault-server-nginx.key content="$(< ./table-top-vault-server-nginx.key)"
+vault kv put kv/vaultServer/table-top-vault-server-nginx.csr content="$(< ./table-top-vault-server-nginx.csr)"
 
 sudo rm -rf ./table-top-vault-server.crt
 sudo rm -rf ./table-top-vault-server.cnf

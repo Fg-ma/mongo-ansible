@@ -1,6 +1,6 @@
 mongo_base_dir: /mnt/mongo
 vault_dir: /mnt/vault
-local_ca_path: "/home/fg/Desktop/tableTopSecrets/ca.pem"
+local_ca_path: "/home/n1/Desktop/tableTopSecrets/ca.pem"
 tabletop_vault_server_ip: 10.5.0.100
 tabletop_vault_server_port: 2223
 mongo_certs_user: mongocerts
@@ -14,8 +14,8 @@ vault_agent_authorities_group: authoritiesvaultagent
 vault_agent_bin_group: binvaultagent
 vault_ip: 10.5.0.100
 hashi_vault_port: 8200
-mongo_admin_secret_path: "secret/data/mongo/admin"
-ca_key_secret_path: "secret/data/tableTop/ca.key"
+mongo_admin_secret_path: "kv/data/mongo/admin"
+ca_key_secret_path: "kv/data/tableTop/ca/ca.key"
 vault_url: "https://10.5.0.100:8200"
 
 # Primaries

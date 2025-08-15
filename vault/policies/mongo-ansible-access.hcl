@@ -6,39 +6,39 @@ path "auth/approle/role/*" {
   capabilities = ["create", "read", "update", "delete", "list"]
 }
 
-path "secret/data/mongo/admin" {
+path "kv/data/mongo/admin" {
   capabilities = ["read"]
 }
 
-path "secret/data/tableTop/ca.pem" {
+path "kv/data/tableTop/ca/ca.pem" {
   capabilities = ["read"]
 }
 
-path "secret/data/tableTop/ca.key" {
+path "kv/data/tableTop/ca/ca.key" {
   capabilities = ["read"]
 }
 
-path "secret/data/mongo/" {
+path "kv/data/mongo/" {
   capabilities = ["list"]
 }
 
-path "secret/data/mongo/*" {
+path "kv/data/mongo/*" {
   capabilities = ["create", "update", "delete", "list"]
 }
 
-path "secret/metadata/mongo/*" {
+path "kv/metadata/mongo/*" {
   capabilities = ["delete", "list"]
 }
 
-path "secret/data/mongos/" {
+path "kv/data/mongos/" {
   capabilities = ["list"]
 }
 
-path "secret/data/mongos/*" {
+path "kv/data/mongos/*" {
   capabilities = ["create", "update", "delete", "list"]
 }
 
-path "secret/metadata/mongos/*" {
+path "kv/metadata/mongos/*" {
   capabilities = ["delete", "list"]
 }
 
