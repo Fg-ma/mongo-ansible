@@ -107,6 +107,7 @@
     host: "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     port: "{{ shard_port }}"
     delay: 5
+    state: started
     timeout: 60
   ignore_errors: true
 
@@ -125,5 +126,16 @@
     host: "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     port: "{{ shard_port }}"
     delay: 5
+    state: started
     timeout: 60
   ignore_errors: true
+
+- name: Fix ownership of all MongoDB files
+  become: true
+  file:
+    path: "{{ mongo_base_dir }}/shard"
+    recurse: yes
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+  notify:
+    - Reload systemd

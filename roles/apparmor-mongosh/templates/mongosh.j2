@@ -19,7 +19,7 @@
   network inet dgram,
   network inet6 dgram,
   network netlink raw,
-  unix (send, receive) type=stream,
+  unix (send, receive, create, connect) type=stream,
   signal (receive) peer=unconfined,
 
   ## ─── Dev nodes ─────────────────────────────────────────────

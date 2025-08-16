@@ -24,19 +24,32 @@
   run_once: true
   become: true
 
-- name: Add other members to the replica set
-  shell: >
-    {{ mongo_base_dir }}/bin/mongosh "mongodb://{{ primary_shard_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/shard/mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ hostvars[host].ansible_host.split('.')[-1] }}.pem&directConnection=true"
-    --eval 'rs.add({ _id: {{ idx + 1 }}, host: "10.{{ mongo_shard_subnet }}.0.{{ hostvars[server]['ansible_host'].split('.')[-1] }}:{{ shard_port }}", priority: 1 })'
+- name: Build shard_members list (skip primary)
+  vars:
+    ip: "10.{{ mongo_shard_subnet }}.0.{{ hostvars[server]['ansible_host'].split('.')[-1] }}"
+  set_fact:
+    shard_members: "{{ shard_members | default([]) + [ {'name': server, 'ip': ip} ] }}"
   loop: "{{ groups['shard_servers'] }}"
   loop_control:
-    index_var: idx
     loop_var: server
-  when: hostvars[server]['ansible_host'] != primary_shard_node
+  when: ip != primary_shard_node
   run_once: true
+  delegate_to: localhost
+
+- name: Add other members to the replica set (idempotent, loop over shard_members)
+  shell: >
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://{{ primary_shard_node }}:{{ shard_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/shard/mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ primary_shard_node.split('.')[-1] }}.pem&directConnection=true"
+    --eval 'if (!rs.conf().members.some(m => m.host == "{{ item.ip }}:{{ shard_port }}")) {
+             rs.add({ host: "{{ item.ip }}:{{ shard_port }}", priority: 1 });
+             print("rs.add -> {{ item.ip }}");
+           } else {
+             print("skip (exists) -> {{ item.ip }}");
+           }'
+  loop: "{{ shard_members }}"
+  run_once: true
+  delegate_to: "{{ primary_shard_node }}"
   become: true
   become_user: "{{ mongo_vault_agent_user }}"
-  delegate_to: "{{ primary_shard_node }}"
 
 - name: Disable Mongo telemetry
   shell: >

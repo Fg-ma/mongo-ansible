@@ -28,6 +28,7 @@
   failed_when: rs_initiate_result.rc != 0 and '"already initialized"' not in rs_initiate_result.stderr
   become: true
   become_user: "{{ mongo_vault_agent_user }}"
+  delegate_to: "{{ primary_config_node }}"
 
 - name: Wait for primary election
   shell: >
@@ -36,20 +37,34 @@
   run_once: true
   become: true
   become_user: "{{ mongo_vault_agent_user }}"
+  delegate_to: "{{ primary_config_node }}"
 
-- name: Add other members to the replica set
-  shell: >
-    {{ mongo_base_dir }}/bin/mongosh "mongodb://{{ primary_config_node }}:{{ config_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/config/mongo-config-10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem&directConnection=true"
-    --eval 'rs.add({ _id: {{ idx + 1 }}, host: "10.{{ mongo_config_subnet }}.0.{{ hostvars[server]['ansible_host'].split('.')[-1] }}:{{ config_port }}", priority: 1 })'
+- name: Build config_members list (skip primary)
+  vars:
+    ip: "10.{{ mongo_config_subnet }}.0.{{ hostvars[server]['ansible_host'].split('.')[-1] }}"
+  set_fact:
+    config_members: "{{ config_members | default([]) + [ {'name': server, 'ip': ip} ] }}"
   loop: "{{ groups['config_servers'] }}"
   loop_control:
-    index_var: idx
     loop_var: server
-  when: hostvars[server]['ansible_host'] != primary_config_node
+  when: ip != primary_config_node
   run_once: true
+  delegate_to: localhost
+
+- name: Add other members to the replica set (idempotent, loop over config_members)
+  shell: >
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://{{ primary_config_node }}:{{ config_port }}/?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/config/mongo-config-10.{{ mongo_config_subnet }}.0.{{ primary_config_node.split('.')[-1] }}.pem&directConnection=true"
+    --eval 'if (!rs.conf().members.some(m => m.host == "{{ item.ip }}:{{ config_port }}")) {
+             rs.add({ host: "{{ item.ip }}:{{ config_port }}", priority: 1 });
+             print("rs.add -> {{ item.ip }}");
+           } else {
+             print("skip (exists) -> {{ item.ip }}");
+           }'
+  loop: "{{ config_members }}"
+  run_once: true
+  delegate_to: "{{ primary_config_node }}"
   become: true
   become_user: "{{ mongo_vault_agent_user }}"
-  delegate_to: "{{ primary_config_node }}"
 
 - name: Disable Mongo telemetry
   shell: >
