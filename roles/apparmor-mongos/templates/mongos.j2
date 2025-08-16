@@ -77,6 +77,8 @@
   {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem r,
 
   ## ─── Shared Libraries ────────────────────────────────────────
+  /etc/ld.so.cache r,
+
   /usr/lib/x86_64-linux-gnu/libcurl.so.* mr,
   /usr/lib/x86_64-linux-gnu/libresolv.so.* mr,
   /usr/lib/x86_64-linux-gnu/libcrypto.so.* mr,
@@ -84,14 +86,16 @@
   /usr/lib/x86_64-linux-gnu/libm.so.* mr,
   /usr/lib/x86_64-linux-gnu/libgcc_s.so.* mr,
   /usr/lib/x86_64-linux-gnu/libc.so.* mr,
+  /usr/lib64/ld-linux-x86-64.so.2 mr,
+  /usr/lib/x86_64-linux-gnu/libnghttp3.so.* mr,
   /usr/lib/x86_64-linux-gnu/libnghttp2.so.* mr,
   /usr/lib/x86_64-linux-gnu/libidn2.so.* mr,
   /usr/lib/x86_64-linux-gnu/librtmp.so.* mr,
   /usr/lib/x86_64-linux-gnu/libssh2.so.* mr,
   /usr/lib/x86_64-linux-gnu/libpsl.so.* mr,
   /usr/lib/x86_64-linux-gnu/libgssapi_krb5.so.* mr,
-  /usr/lib/x86_64-linux-gnu/libldap-2.5.so.* mr,
-  /usr/lib/x86_64-linux-gnu/liblber-2.5.so.* mr,
+  /usr/lib/x86_64-linux-gnu/libldap.so.* mr,
+  /usr/lib/x86_64-linux-gnu/liblber.so.* mr,
   /usr/lib/x86_64-linux-gnu/libzstd.so.* mr,
   /usr/lib/x86_64-linux-gnu/libbrotlidec.so.* mr,
   /usr/lib/x86_64-linux-gnu/libz.so.* mr,

@@ -11,7 +11,7 @@ net:
   bindIp: 10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}
   tls:
     mode: requireTLS
-    certificateKeyFile: {{ vault_dir }}/secrets/mongo/config/mongo-config-10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}@.pem
+    certificateKeyFile: {{ vault_dir }}/secrets/mongo/config/mongo-config-10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
     CAFile: {{ vault_dir }}/authorities/ca.pem
     allowConnectionsWithoutCertificates: false
     allowInvalidCertificates: false

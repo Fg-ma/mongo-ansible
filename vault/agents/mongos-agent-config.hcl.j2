@@ -2,7 +2,7 @@ pid_file = "{{ vault_dir }}/agents/mongo/mongos/mongos-vault-agent.pid"
 
 vault {
   address = "https://{{ vault_ip }}:{{ hashi_vault_port }}"
-  tls_ca_file = "{{ vault_dir }}/authorities/ca.pem"
+  ca_cert = "{{ vault_dir }}/authorities/ca.pem"
 }
 
 auto_auth {

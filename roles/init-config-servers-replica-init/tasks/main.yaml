@@ -45,7 +45,7 @@
   loop_control:
     index_var: idx
     loop_var: server
-  when: server != primary_config_node
+  when: hostvars[server]['ansible_host'] != primary_config_node
   run_once: true
   become: true
   become_user: "{{ mongo_vault_agent_user }}"

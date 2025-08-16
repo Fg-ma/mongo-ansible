@@ -19,7 +19,7 @@ ca_key_secret_path: "kv/data/tableTop/ca/ca.key"
 vault_url: "https://10.5.0.100:8200"
 
 # Primaries
-primary_config_node: 10.40.0.101
+primary_config_node: 10.60.0.101
 primary_shard_node: 10.50.0.101
 
 # Ports

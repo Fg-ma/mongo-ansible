@@ -28,9 +28,9 @@ sudo rm -rf /etc/apparmor.d/mnt.mongo.bin.mongod
 sudo rm -rf /etc/apparmor.d/mnt.mongo.bin.mongos
 sudo rm -rf /etc/apparmor.d/mnt.mongo.bin.mongosh
 
-sudo systemctl stop fetch-vault-mongo-approle-ids.service
-sudo systemctl disable fetch-vault-mongo-approle-ids.service
-sudo rm -rf /etc/systemd/system/fetch-vault-mongo-approle-ids.service
+sudo systemctl stop fetch-vault-mongo-config-approle-ids.service
+sudo systemctl disable fetch-vault-mongo-config-approle-ids.service
+sudo rm -rf /etc/systemd/system/fetch-vault-mongo-config-approle-ids.service
 sudo systemctl stop mongo-config-vault-agent.service
 sudo systemctl disable mongo-config-vault-agent.service
 sudo rm -rf /etc/systemd/system/mongo-config-vault-agent.service
@@ -64,6 +64,12 @@ sudo rm -rf /etc/systemd/system/mongos-vault-agent.service
 sudo systemctl daemon-reload
 
 // Force clean shard server
+sudo systemctl stop fetch-vault-mongo-shard-approle-ids.service
+sudo systemctl disable fetch-vault-mongo-shard-approle-ids.service
+sudo rm -rf /etc/systemd/system/fetch-vault-mongo-shard-approle-ids.service
+sudo systemctl stop mongo-shard-vault-agent.service
+sudo systemctl disable mongo-shard-vault-agent.service
+sudo rm -rf /etc/systemd/system/mongo-shard-vault-agent.service
 sudo systemctl stop mongod-shardsvr.service
 sudo systemctl disable mongod-shardsvr.service
 sudo pkill -f mongod.*shardsvr
@@ -72,46 +78,6 @@ sudo rm -rf -R /mnt/mongo/shard
 sudo ls -l /mnt/mongo
 sudo systemctl daemon-reload
 
-
-
-// Remake certs
-# 1a. Generate the private key and CSR
-openssl req -new -nodes \
-  -out .csr \
-  -keyout .key \
-  -config .cnf
-
-# 2a. Sign the CSR to produce the cert
-openssl x509 -req \
-  -in .csr \
-  -CA /home/n1/Desktop/tableTopSecrets/ca.pem -CAkey /home/n1/Desktop/tableTopSecrets/ca.key -CAcreateserial \
-  -out .crt \
-  -extensions v3_req -extfile .cnf \
-  -days 365
-  
-# 3a. Concatenate key+cert into the single file MongoDB expects
-cat .crt .key > .pem
-
-# Secure it:
-chmod 600 .pem
-
-vault kv put kv/vaultServer/table-top-vault-server.crt content="$(< ./table-top-vault-server.crt)"
-vault kv put kv/vaultServer/table-top-vault-server.cnf content="$(< ./table-top-vault-server.cnf)"
-vault kv put kv/vaultServer/table-top-vault-server.key content="$(< ./table-top-vault-server.key)"
-vault kv put kv/vaultServer/table-top-vault-server.csr content="$(< ./table-top-vault-server.csr)"
-vault kv put kv/vaultServer/table-top-vault-server-nginx.crt content="$(< ./table-top-vault-server-nginx.crt)"
-vault kv put kv/vaultServer/table-top-vault-server-nginx.cnf content="$(< ./table-top-vault-server-nginx.cnf)"
-vault kv put kv/vaultServer/table-top-vault-server-nginx.key content="$(< ./table-top-vault-server-nginx.key)"
-vault kv put kv/vaultServer/table-top-vault-server-nginx.csr content="$(< ./table-top-vault-server-nginx.csr)"
-
-sudo rm -rf ./table-top-vault-server.crt
-sudo rm -rf ./table-top-vault-server.cnf
-sudo rm -rf ./table-top-vault-server.key
-sudo rm -rf ./table-top-vault-server.csr
-sudo rm -rf ./table-top-vault-server-nginx.crt
-sudo rm -rf ./table-top-vault-server-nginx.cnf
-sudo rm -rf ./table-top-vault-server-nginx.key
-sudo rm -rf ./table-top-vault-server-nginx.csr
 
 
 python3 -c 'import urllib.parse; print(urllib.parse.quote("my/secure:password", safe=""))'
