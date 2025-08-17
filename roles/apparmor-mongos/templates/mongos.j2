@@ -16,7 +16,7 @@
   network inet6 stream,
   network inet6 dgram,
   network netlink raw,
-  unix (send, receive) type=stream,
+  unix (send, receive, create, setopt, bind, getattr, connect, listen, accept) type=stream,
   signal (send, receive),
 
   ## ─── Temporary files ─────────────────────────────────────────
