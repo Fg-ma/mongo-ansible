@@ -10,6 +10,7 @@
 
 - name: Add shard to cluster
   become: true
+  become_user: "{{ mongo_vault_agent_user }}"
   command: >
     {{ mongo_base_dir }}/bin/mongosh
     --host {{ mongos_node }}
@@ -20,12 +21,11 @@
     --authenticationMechanism MONGODB-X509
     --authenticationDatabase '$external'
     --eval '
-      const replSet = "{{ repl_set_name }}";
       const hosts = [
         {% for host in groups["shard_servers"] %}
         "10.{{ mongo_shard_subnet }}.0.{{ hostvars[host].ansible_host.split('.')[-1] }}:{{ shard_port }}"{% if not loop.last %},{% endif %}
         {% endfor %}
       ];
-      const shardString = replSet + "/" + hosts.join(",");
+      const shardString = "{{ repl_set_name }}/" + hosts.join(",");
       sh.addShard(shardString);
     '

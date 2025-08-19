@@ -17,6 +17,7 @@
     '
   register: current_primary_result
   run_once: true
+  no_log: true
 
 - name: Set current primary as a fact
   set_fact:
@@ -27,7 +28,7 @@
     {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/shard/mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem&directConnection=true" --eval '
     const currentMembers = rs.status().members.map(m => m.name);
     {% for host in groups["remove_shard_servers"] %}
-    const target = "10.{{ mongo_shard_subnet }}.0.{{ hostvars[host].ansible_host.split('.')[-1] }}:{{ shard_port }}";
+    const target = "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}:{{ shard_port }}";
     if (target === "{{ current_primary }}") {
       print("Skipping primary: " + target);
     } else if (currentMembers.includes(target)) {
@@ -40,6 +41,7 @@
     {% endfor %}
     '
   run_once: true
+  no_log: true
 
 - name: Step down current primary if it's in the remove list
   shell: |
@@ -52,6 +54,7 @@
     '
   when: current_primary in (groups['remove_shard_servers'] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '^.*\\.(\\d+)$', '10.{{ mongo_shard_subnet }}.0.\\1') | map('regex_replace', '$', ':' ~ shard_port) | list)
   run_once: true
+  no_log: true
 
 - name: Wait for new primary to be elected
   shell: |
@@ -60,6 +63,7 @@
   when: current_primary in (groups['remove_shard_servers'] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '^.*\\.(\\d+)$', '10.{{ mongo_shard_subnet }}.0.\\1') | map('regex_replace', '$', ':' ~ shard_port) | list)
   register: new_primary_result
   run_once: true
+  no_log: true
 
 - name: Remove old primary from new primary
   shell: |
@@ -70,3 +74,4 @@
     - current_primary in (groups['remove_shard_servers'] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '^.*\\.(\\d+)$', '10.{{ mongo_shard_subnet }}.0.\\1') | map('regex_replace', '$', ':' ~ shard_port) | list)
     - new_primary_result.stdout | trim != ''
   run_once: true
+  no_log: true

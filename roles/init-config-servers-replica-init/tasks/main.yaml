@@ -81,3 +81,4 @@
   run_once: true
   become: true
   become_user: "{{ mongo_vault_agent_user }}"
+  no_log: true

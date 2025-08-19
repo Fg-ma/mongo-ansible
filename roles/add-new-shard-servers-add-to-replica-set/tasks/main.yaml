@@ -30,8 +30,9 @@
 
     {% for host in groups["new_shard_servers"] %}
     maxId++;
-    rs.add({ _id: maxId, host: "10.{{ mongo_shard_subnet }}.0.{{ hostvars[host].ansible_host.split('.')[-1] }}:{{ shard_port }}" });
+    rs.add({ _id: maxId, host: "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}:{{ shard_port }}" });
     sleep(1000);
     {% endfor %}
     '
   run_once: true
+  no_log: true

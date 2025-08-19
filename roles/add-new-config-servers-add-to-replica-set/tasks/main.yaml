@@ -34,3 +34,4 @@
     {% endfor %}
     '
   run_once: true
+  no_log: true

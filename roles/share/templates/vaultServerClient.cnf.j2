@@ -18,5 +18,5 @@ subjectAltName = @alt_names
 extendedKeyUsage = clientAuth
 
 [ alt_names ]
-DNS.1 = {{ inventory_hostname }}.mongo
-IP.1  = 10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}
+DNS.1 = {{ inventory_hostname }}.admin
+IP.1  = 10.{{ admin_subnet }}.0.{{ ansible_host.split('.')[-1] }}

@@ -39,7 +39,7 @@
 - name: Wait for MongoDB port to be open
   ignore_errors: true
   wait_for:
-    host: "10.{{ mongo_shard_subnet }}.0.{{ hostvars[host].ansible_host.split('.')[-1] }}"
+    host: "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     port: "{{ shard_port }}"
     timeout: 60
     delay: 5
