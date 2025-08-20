@@ -117,7 +117,10 @@
       User=root
       Group={{ vault_agent_bin_group }}
       Type=oneshot
-      ExecStart={{ vault_dir }}/scripts/mongo/mongos/fetch-vault-mongos-approle-ids.sh
+      ExecStartPre=/bin/mkdir -p {{ vault_dir }}/secrets/mongo/mongos
+      ExecStart=/bin/bash {{ vault_dir }}/scripts/mongo/mongos/fetch-vault-mongos-approle-ids.sh
+      StandardOutput=journal
+      StandardError=journal
       RemainAfterExit=yes
 
       [Install]

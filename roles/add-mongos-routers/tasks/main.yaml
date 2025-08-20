@@ -1,7 +1,7 @@
 - name: Include mkdirs tasks
   import_tasks: mkdirs.yaml
 
-- name: Render mongod “auth” config file
+- name: Render mongos config file
   template:
     src: mongos.conf.j2
     dest: "{{ mongo_base_dir }}/mongos/conf/mongos.conf"

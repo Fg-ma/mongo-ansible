@@ -20,7 +20,50 @@ lsblk -f
 sudo nano /etc/fstab
 UUID=1234-5678  /mnt/mongo  xfs  defaults  0  2
 
+use $external
+db.createUser({
+  user: "CN=10.60.0.102,OU=MongoConfigInternalCluster,O=TableTop,L=CNTL,ST=FL,C=US",
+  roles: [
+    { role: "clusterAdmin", db: "admin" },
+    { role: "clusterManager", db: "admin" },
+    { role: "hostManager", db: "admin" }
+  ]
+})
+db.createUser({
+  user: "CN=10.60.0.103,OU=MongoConfigInternalCluster,O=TableTop,L=CNTL,ST=FL,C=US",
+  roles: [
+    { role: "clusterAdmin", db: "admin" },
+    { role: "clusterManager", db: "admin" },
+    { role: "hostManager", db: "admin" }
+  ]
+})
 
+use $external
+db.createUser({
+  user: "CN=10.40.0.101,OU=MongosClient,O=TableTop,L=CNTL,ST=FL,C=US",
+  roles: [
+    { role: "clusterManager", db: "admin" },
+    { role: "clusterAdmin", db: "admin" },
+    { role: "hostManager", db: "admin" }
+  ]
+})
+db.createUser({
+  user: "CN=10.40.0.102,OU=MongosClient,O=TableTop,L=CNTL,ST=FL,C=US",
+  roles: [
+    { role: "clusterManager", db: "admin" },
+    { role: "clusterAdmin", db: "admin" },
+    { role: "hostManager", db: "admin" }
+  ]
+})
+db.createUser({
+  user: "CN=10.40.0.103,OU=MongosClient,O=TableTop,L=CNTL,ST=FL,C=US",
+  roles: [
+    { role: "clusterManager", db: "admin" },
+    { role: "clusterAdmin", db: "admin" },
+    { role: "hostManager", db: "admin" }
+  ]
+})
+db.getUsers()
 
 // Force clean config server
 sudo rm -rf /etc/apparmor.d/mnt.vault.bin.vault

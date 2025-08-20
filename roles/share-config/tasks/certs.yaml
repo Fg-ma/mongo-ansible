@@ -20,7 +20,7 @@
       organization:
         - "{{ cert_organization }}"
       ou:
-        - "MongoConfigInternalCluster"
+        - "{{ config_cert_ou }}"
       common_name: "10.{{ mongo_config_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       exclude_cn_from_sans: true
       allow_bare_domains: true

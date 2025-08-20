@@ -32,6 +32,9 @@ cert_country: US
 cert_state: FL
 cert_locality: CNTL
 cert_organization: TableTop
+config_cert_ou: MongoConfigInternalCluster
+shard_cert_ou: MongoShardInternalCluster
+mongos_cert_ou: MongosInternalCluster
 
 # Subnets
 admin_subnet: 5

@@ -4,8 +4,8 @@
     content: |
       {{ vault_agent_user }} ALL=(ALL) NOPASSWD: \
         {{ vault_dir }}/scripts/mongo/config/mongo-config-vault-restart.sh, \
-        {{ vault_dir }}/scripts/mongo/config/mongo-shard-vault-restart.sh, \
-        {{ vault_dir }}/scripts/mongo/config/mongos-vault-restart.sh, \
+        {{ vault_dir }}/scripts/mongo/shard/mongo-shard-vault-restart.sh, \
+        {{ vault_dir }}/scripts/mongo/mongos/mongos-vault-restart.sh, \
         /bin/systemctl restart mongod-configsvr.service, \
         /bin/systemctl restart mongos.service, \
         /bin/systemctl restart mongod-shardsvr.service

@@ -14,7 +14,7 @@
     {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@{{ primary_config_node }}:{{ config_port }}/?replicaSet={{ config_repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/config/mongo-config-10.{{ mongo_config_subnet }}.0.{{ primary_config_node.split('.')[-1] }}.pem&directConnection=true"
     --eval '
       db.getSiblingDB("$external").createUser({
-        user: "CN=10.{{ mongo_mongos_subnet }}.0.{{ hostvars[item]["ansible_host"].split('.')[-1] }},OU=MongosClient,O={{ cert_organization }},L={{ cert_locality }},ST={{ cert_state }},C={{ cert_country }}",
+        user: "CN=10.{{ mongo_mongos_subnet }}.0.{{ hostvars[item]["ansible_host"].split('.')[-1] }},OU={{ mongos_cert_ou }},O={{ cert_organization }},L={{ cert_locality }},ST={{ cert_state }},C={{ cert_country }}",
         roles: [
           { role: "root", db: "admin" },
           { role: "__system", db: "admin" }

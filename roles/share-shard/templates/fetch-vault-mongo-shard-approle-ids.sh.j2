@@ -1,6 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-VAULT_TOKEN=$({{ vault_dir }}/bin/vault_requests {{ mongo_base_dir }}/conf/mongo-shard-approle-vault-server-request.conf | sed 's/^Received: //' | jq -r .vault_token)
+log() { printf '%s %s\n' "$(date -Is)" "$*" >&2; }
+
+log "Starting fetch-vault-mongo-shard-approle-ids.sh"
+
+VAULT_TOKEN=$({{ vault_dir }}/bin/vault_requests {{ mongo_base_dir }}/conf/mongo-shard-approle-vault-server-request.conf)
 
 if [[ -z "$VAULT_TOKEN" ]]; then
   echo "[ERROR] Failed to get Vault token"

@@ -68,13 +68,13 @@
     systemctl daemon-reexec
     systemctl daemon-reload
 
-- name: Check if mongod-configsvr.service unit exists
+- name: Check if mongod-shardsvr.service unit exists
   stat:
-    path: /etc/systemd/system/mongod-configsvr.service
+    path: /etc/systemd/system/mongod-shardsvr.service
   register: mongod_unit
 
-- name: Reset failed mongod-configsvr if loaded
-  command: systemctl reset-failed mongod-configsvr.service
+- name: Reset failed mongod-shardsvr if loaded
+  command: systemctl reset-failed mongod-shardsvr.service
   when: mongod_unit.stat.exists
   ignore_errors: true
 
