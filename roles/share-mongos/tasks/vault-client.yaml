@@ -1,0 +1,165 @@
+- name: Create empty mongos-client-vault-agent.pid file
+  file:
+    path: "{{ vault_dir }}/agents/mongo/mongos-client/mongos-client-vault-agent.pid"
+    state: touch
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0640"
+  become: true
+
+- name: Create vault policies
+  block:
+    - name: "Render Vault policy for mongos-client-approle-reader"
+      template:
+        src: "{{ playbook_dir }}/../vault/policies/mongos-client-approle-reader.hcl.j2"
+        dest: "/tmp/mongos-client-approle-reader-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
+
+    - name: "Read rendered mongos-client-approle-reader policy file"
+      slurp:
+        src: "/tmp/mongos-client-approle-reader-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
+      register: slurped_mongos_client_approle_reader_policy
+
+    - name: "Upload mongos-client-approle-reader policy to vault"
+      delegate_to: localhost
+      community.hashi_vault.vault_write:
+        url: "{{ vault_url }}"
+        token: "{{ vault_token }}"
+        path: "sys/policies/acl/mongos-client-approle-reader-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
+        ca_cert: "{{ local_ca_path }}"
+        data:
+          policy: "{{ slurped_mongos_client_approle_reader_policy.content | b64decode }}"
+
+    - name: "Render Vault policy for mongos-client"
+      template:
+        src: "{{ playbook_dir }}/../vault/policies/mongos-client.hcl.j2"
+        dest: "/tmp/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
+
+    - name: "Read rendered mongos-client policy file"
+      slurp:
+        src: "/tmp/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
+      register: slurped_mongos_client_policy
+
+    - name: "Upload mongos-client policy to vault"
+      delegate_to: localhost
+      community.hashi_vault.vault_write:
+        url: "{{ vault_url }}"
+        token: "{{ vault_token }}"
+        path: "sys/policies/acl/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
+        ca_cert: "{{ local_ca_path }}"
+        data:
+          policy: "{{ slurped_mongos_client_policy.content | b64decode }}"
+
+  always:
+    - name: "Clean up temporary policy file"
+      file:
+        path: "/tmp/mongos-client-approle-reader-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
+        state: absent
+
+    - name: "Clean up temporary policy file"
+      file:
+        path: "/tmp/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.hcl"
+        state: absent
+
+- name: "Create AppRole for node"
+  delegate_to: localhost
+  community.hashi_vault.vault_write:
+    url: "{{ vault_url }}"
+    token: "{{ vault_token }}"
+    path: "auth/approle/role/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
+    ca_cert: "{{ local_ca_path }}"
+    data:
+      token_policies: "mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
+      token_ttl: "1h"
+      token_max_ttl: "4h"
+
+- name: Copy Mongos-Client Vault Agent
+  template:
+    src: "{{ playbook_dir }}/../vault/agents/mongos-client-agent-config.hcl.j2"
+    dest: "{{ vault_dir }}/agents/mongo/mongos-client/mongos-client-agent-config.hcl"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0400"
+
+- name: Deploy rendered Vault Agent mongos-client.pem.ctmpl template
+  template:
+    src: "{{ playbook_dir }}/../vault/templates/mongos-client.pem.ctmpl.j2"
+    dest: "{{ vault_dir }}/templates/mongo/mongos-client/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem.ctmpl"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0400"
+
+- name: Install mongos-client-approle-vault-server-request.conf
+  template:
+    src: mongos-client-approle-vault-server-request.conf.j2
+    dest: "{{ mongo_base_dir }}/conf/mongos-client-approle-vault-server-request.conf"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0440"
+
+- name: Install fetch-vault-mongos-client-approle-ids script
+  template:
+    src: fetch-vault-mongos-client-approle-ids.sh.j2
+    dest: "{{ vault_dir }}/scripts/mongo/mongos-client/fetch-vault-mongos-client-approle-ids.sh"
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ mongo_vault_agent_group }}"
+    mode: "0550"
+
+- name: Create systemd unit to run the fetcher on boot
+  copy:
+    dest: /etc/systemd/system/fetch-vault-mongos-client-approle-ids.service
+    content: |
+      [Unit]
+      Description=Vault Mongos-Client approle ids fetcher
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      User=root
+      Group={{ vault_agent_bin_group }}
+      Type=oneshot
+      ExecStartPre=/bin/mkdir -p {{ vault_dir }}/secrets/mongo/mongos-client
+      ExecStart=/bin/bash {{ vault_dir }}/scripts/mongo/mongos-client/fetch-vault-mongos-client-approle-ids.sh
+      StandardOutput=journal
+      StandardError=journal
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: Reload systemd
+
+- name: Create systemd service file for mongos-client vault agent
+  copy:
+    dest: /etc/systemd/system/mongos-client-vault-agent.service
+    content: |
+      [Unit]
+      Description=Vault Agent
+      After=network.target fetch-vault-mongos-client-approle-ids.service
+      Requires=fetch-vault-mongos-client-approle-ids.service
+
+      [Service]
+      User={{ mongo_vault_agent_user }}
+      Group={{ mongo_vault_agent_group }}
+      ExecStart={{ vault_dir }}/bin/vault agent -config={{ vault_dir }}/agents/mongo/mongos-client/mongos-client-agent-config.hcl
+      Restart=on-failure
+      PIDFile={{ vault_dir }}/agents/mongo/mongos-client/mongos-client-vault-agent.pid
+
+      [Install]
+      WantedBy=multi-user.target
+  notify: Reload systemd
+
+- name: Force Reload systemd
+  systemd:
+    daemon_reload: yes
+
+- name: Enable & start fetcher
+  systemd:
+    name: fetch-vault-mongos-client-approle-ids.service
+    state: started
+    enabled: yes
+  register: fetcher_status
+
+- name: Start and enable Mongos-Client Vault Agent service
+  systemd:
+    name: mongos-client-vault-agent
+    state: started
+    enabled: yes

@@ -7,7 +7,7 @@
     data:
       name: "mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       allowed_domains:
-        - "{{ inventory_hostname }}.mongo"
+        - "{{ inventory_hostname }}.mongo.shard"
         - "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       key_type: "rsa"
       key_bits: 4096
@@ -21,11 +21,11 @@
         - "{{ cert_organization }}"
       ou:
         - "{{ shard_cert_ou }}"
-      common_name: "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
+      common_name: "{{ inventory_hostname }}.mongo.shard"
       exclude_cn_from_sans: true
       allow_bare_domains: true
       alt_names:
-        - "{{ inventory_hostname }}.mongo"
+        - "{{ inventory_hostname }}.mongo.shard"
       ip_sans:
         - "10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       allow_ip_sans: true

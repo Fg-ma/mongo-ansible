@@ -75,6 +75,7 @@
   ## ─── Vault secrets ───────────────────────────────────────────
   {{ vault_dir }}/authorities/ca.pem r,
   {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem r,
+  {{ vault_dir }}/secrets/mongo/mongos-client/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem r,
 
   ## ─── Shared Libraries ────────────────────────────────────────
   /etc/ld.so.cache r,

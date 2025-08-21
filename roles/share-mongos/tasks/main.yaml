@@ -15,3 +15,12 @@
 - name: Include vault tasks
   import_tasks: vault.yaml
   when: mongos_vault_agent_status.stdout != "active"
+
+- name: Check if mongos-client-vault-agent service is running
+  shell: systemctl is-active mongos-client-vault-agent
+  register: mongos_client_vault_agent_status
+  ignore_errors: true
+
+- name: Include vault-client tasks
+  import_tasks: vault-client.yaml
+  when: mongos_client_vault_agent_status.stdout != "active"

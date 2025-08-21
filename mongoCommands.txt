@@ -22,6 +22,14 @@ UUID=1234-5678  /mnt/mongo  xfs  defaults  0  2
 
 use $external
 db.createUser({
+  user: "CN=10.60.0.101,OU=MongoConfigInternalCluster,O=TableTop,L=CNTL,ST=FL,C=US",
+  roles: [
+    { role: "clusterAdmin", db: "admin" },
+    { role: "clusterManager", db: "admin" },
+    { role: "hostManager", db: "admin" }
+  ]
+})
+db.createUser({
   user: "CN=10.60.0.102,OU=MongoConfigInternalCluster,O=TableTop,L=CNTL,ST=FL,C=US",
   roles: [
     { role: "clusterAdmin", db: "admin" },
@@ -104,6 +112,12 @@ sudo rm -rf /etc/systemd/system/fetch-vault-mongos-approle-ids.service
 sudo systemctl stop mongos-vault-agent.service
 sudo systemctl disable mongos-vault-agent.service
 sudo rm -rf /etc/systemd/system/mongos-vault-agent.service
+sudo systemctl stop fetch-vault-mongos-client-approle-ids.service
+sudo systemctl disable fetch-vault-mongos-client-approle-ids.service
+sudo rm -rf /etc/systemd/system/fetch-vault-mongos-client-approle-ids.service
+sudo systemctl stop mongos-client-vault-agent.service
+sudo systemctl disable mongos-client-vault-agent.service
+sudo rm -rf /etc/systemd/system/mongos-client-vault-agent.service
 sudo systemctl daemon-reload
 
 // Force clean shard server
