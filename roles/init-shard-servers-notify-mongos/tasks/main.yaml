@@ -17,7 +17,7 @@
     --port {{ mongos_port }}
     --tls
     --tlsCAFile {{ vault_dir }}/authorities/ca.pem
-    --tlsCertificateKeyFile {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
+    --tlsCertificateKeyFile {{ vault_dir }}/secrets/mongo/mongos/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
     --authenticationMechanism MONGODB-X509
     --authenticationDatabase '$external'
     --eval '

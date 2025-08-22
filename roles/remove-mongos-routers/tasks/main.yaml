@@ -22,6 +22,12 @@
   ignore_errors: true
   become: true
 
+- name: Remove {{ mongo_base_dir }}/bin/mongos
+  file:
+    path: "{{ mongo_base_dir }}/bin/mongos"
+    state: absent
+  become: true
+
 - name: Include vault tasks
   import_tasks: vault.yaml
 

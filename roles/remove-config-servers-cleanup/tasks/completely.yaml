@@ -56,6 +56,12 @@
 #     path: "{{ mongo_base_dir }}"
 #     state: absent
 
+- name: Remove {{ mongo_base_dir }}/bin/mongo
+  file:
+    path: "{{ mongo_base_dir }}/bin/mongod"
+    state: absent
+  become: true
+
 - name: Find all contents of the {{ mongo_base_dir }} directory
   find:
     paths: "{{ mongo_base_dir }}"
