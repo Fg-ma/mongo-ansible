@@ -21,7 +21,7 @@
 
 - name: Add new servers to replica
   shell: |
-    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}:{{ shard_port }}/admin?replicaSet={{ repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/shard/mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem&directConnection=true" --eval '
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}:{{ shard_port }}/admin?replicaSet={{ shard_repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/shard-client/mongo-shard-client-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem&directConnection=true" --eval '
     const currentConfig = rs.conf();
     let maxId = -1;
     for (const m of currentConfig.members) {

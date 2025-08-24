@@ -30,3 +30,35 @@
     owner: "{{ mongo_vault_agent_user }}"
     group: "{{ vault_agent_navigational_group }}"
     mode: "0710"
+
+- name: Create {{ vault_dir }}/secrets/mongo/config-client directory
+  file:
+    path: "{{ vault_dir }}/secrets/mongo/config-client"
+    state: directory
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ vault_agent_navigational_group }}"
+    mode: "0710"
+
+- name: Create {{ vault_dir }}/scripts/mongo/config-client directory
+  file:
+    path: "{{ vault_dir }}/scripts/mongo/config-client"
+    state: directory
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ vault_agent_navigational_group }}"
+    mode: "0710"
+
+- name: Create {{ vault_dir }}/templates/mongo/config-client directory
+  file:
+    path: "{{ vault_dir }}/templates/mongo/config-client"
+    state: directory
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ vault_agent_navigational_group }}"
+    mode: "0710"
+
+- name: Create {{ vault_dir }}/agents/mongo/config-client directory
+  file:
+    path: "{{ vault_dir }}/agents/mongo/config-client"
+    state: directory
+    owner: "{{ mongo_vault_agent_user }}"
+    group: "{{ vault_agent_navigational_group }}"
+    mode: "0710"

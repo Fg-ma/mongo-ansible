@@ -13,7 +13,7 @@
 - name: Remove AppArmor rule for mongo-config-vault-restart.sh
   lineinfile:
     path: /etc/apparmor.d/{{ vault_apparmor_profile_name }}
-    line: "  {{ vault_dir }}/scripts/mongo/mongo-config-vault-restart.sh cx -> mongo-config-vault-restart-script,"
+    line: "  {{ vault_dir }}/scripts/mongo/config-vault-restart.sh cx -> mongo-config-vault-restart-script,"
     state: absent
   ignore_errors: true
 

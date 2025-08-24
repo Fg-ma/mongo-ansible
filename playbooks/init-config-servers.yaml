@@ -10,7 +10,6 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/config_servers.yaml
   roles:
     - role: share
     - role: share-config
@@ -27,15 +26,18 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/config_servers.yaml
   roles:
     - role: init-config-servers-replica-init
 
 - name: Set up Config Servers - Auth start up
   hosts: config_servers
   become: true
+  vars_prompt:
+    - name: vault_token
+      prompt: "Enter Vault access token"
+      private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/config_servers.yaml
   roles:
+    - role: init-config-servers-x509
     - role: init-config-servers-auth-start-up

@@ -8,7 +8,6 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/shard_servers.yaml
   roles:
     - role: remove-shard-servers-from-replica
 
@@ -22,6 +21,5 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/shard_servers.yaml
   roles:
     - role: remove-shard-servers-cleanup

@@ -13,11 +13,12 @@
   community.hashi_vault.vault_write:
     url: "{{ vault_url }}"
     token: "{{ vault_token }}"
-    mount_point: ""
+    mount_point: "pki"
     path: "pki/roles/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     data:
       name: "mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       allowed_domains:
+        - "{{ inventory_hostname | lower }}"
         - "{{ inventory_hostname }}.mongo.mongos"
         - "10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       key_type: "rsa"
@@ -36,6 +37,7 @@
       exclude_cn_from_sans: true
       allow_bare_domains: true
       alt_names:
+        - "{{ inventory_hostname | lower }}"
         - "{{ inventory_hostname }}.mongo.mongos"
       ip_sans:
         - "10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
@@ -55,6 +57,7 @@
   environment:
     REQUESTS_CA_BUNDLE: "{{ local_ca_path }}"
   delegate_to: localhost
+  when: mongos_role.failed or mongos_role.data is not defined
   no_log: true
 
 - name: Check if mongos client role exists
@@ -72,11 +75,12 @@
   community.hashi_vault.vault_write:
     url: "{{ vault_url }}"
     token: "{{ vault_token }}"
-    mount_point: ""
+    mount_point: "pki"
     path: "pki/roles/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
     data:
       name: "mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       allowed_domains:
+        - "{{ inventory_hostname | lower }}"
         - "{{ inventory_hostname }}.mongo.mongos"
         - "10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       key_type: "rsa"
@@ -95,18 +99,18 @@
       exclude_cn_from_sans: true
       allow_bare_domains: true
       alt_names:
+        - "{{ inventory_hostname | lower }}"
         - "{{ inventory_hostname }}.mongo.mongos"
       ip_sans:
         - "10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}"
       allow_ip_sans: true
       allow_localhost: false
-      server_flag: true
+      server_flag: false
       client_flag: true
       key_usage:
         - DigitalSignature
         - KeyEncipherment
       ext_key_usage:
-        - server_auth
         - client_auth
       ttl: "12h"
       max_ttl: "12h"
@@ -114,4 +118,5 @@
   environment:
     REQUESTS_CA_BUNDLE: "{{ local_ca_path }}"
   delegate_to: localhost
+  when: mongos_client_role.failed or mongos_client_role.data is not defined
   no_log: true

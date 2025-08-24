@@ -40,6 +40,13 @@
     state: absent
   ignore_errors: true
 
+- name: Remove AppArmor rule for mongo-config-client-approle-vault-server-request.conf
+  lineinfile:
+    path: /etc/apparmor.d/{{ vault_requests_apparmor_profile_name }}
+    line: "  {{ mongo_base_dir }}/conf/mongo-config-client-approle-vault-server-request.conf r,"
+    state: absent
+  ignore_errors: true
+
 - name: Reload vault AppArmor profile
   command: apparmor_parser -r /etc/apparmor.d/{{ vault_apparmor_profile_name }}
   ignore_errors: true

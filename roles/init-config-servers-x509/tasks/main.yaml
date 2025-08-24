@@ -1,0 +1,36 @@
+- name: Include vault_fetcher role
+  include_role:
+    name: vault-fetcher
+  vars:
+    fetcher_secret_var_name: "mongo_admin"
+    fetcher_secret_path: "{{ mongo_admin_secret_path }}"
+    fetcher_vault_token: "{{ vault_token }}"
+    fetcher_vault_url: "{{ vault_url }}"
+    fetcher_ca_path: "{{ local_ca_path }}"
+    fetcher_engine_version: 2
+
+- name: Create x.509 users in $external for mongo-config-client users
+  shell: >
+    {{ mongo_base_dir }}/bin/mongosh "mongodb://admin:{{ mongo_admin.password | urlencode | replace('/', '%2F') }}@{{ primary_config_node }}:{{ config_port }}/?replicaSet={{ config_repl_set_name }}&tls=true&tlsCAFile={{ vault_dir }}/authorities/ca.pem&tlsCertificateKeyFile={{ vault_dir }}/secrets/mongo/config-client/mongo-config-client-10.{{ mongo_config_subnet }}.0.{{ primary_config_node.split('.')[-1] }}.pem&directConnection=true"
+    --eval '
+      db = db.getSiblingDB("$external");
+
+      // Client cert user
+      if (!db.getUser("CN={{ item }}.mongo.config,OU={{ config_client_cert_ou }},O={{ cert_organization }},L={{ cert_locality }},ST={{ cert_state }},C={{ cert_country }}")) {
+        db.createUser({
+          user: "CN={{ item }}.mongo.config,OU={{ config_client_cert_ou }},O={{ cert_organization }},L={{ cert_locality }},ST={{ cert_state }},C={{ cert_country }}",
+          roles: [
+            { role: "root", db: "admin" }
+          ],
+          mechanisms: ["MONGODB-X509"]
+        });
+      }
+    '
+  loop: "{{ groups['config_servers'] }}"
+  loop_control:
+    label: "10.{{ mongo_config_subnet }}.0.{{ hostvars[item]['ansible_host'].split('.')[-1] }}"
+  run_once: true
+  delegate_to: "{{ primary_config_node }}"
+  become: true
+  become_user: "{{ mongo_vault_agent_user }}"
+  no_log: true

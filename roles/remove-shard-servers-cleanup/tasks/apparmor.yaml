@@ -33,6 +33,13 @@
   set_fact:
     vault_apparmor_profile_name: "{{ vault_dir | regex_replace('^/', '') | replace('/', '.') }}.bin.vault"
 
+- name: Remove AppArmor rule for mongo-shard-client-approle-vault-server-request.conf
+  lineinfile:
+    path: /etc/apparmor.d/{{ vault_requests_apparmor_profile_name }}
+    line: "  {{ mongo_base_dir }}/conf/mongo-shard-client-approle-vault-server-request.conf r,"
+    state: absent
+  ignore_errors: true
+
 - name: Remove AppArmor rule for mongo-shard-vault-restart.sh
   lineinfile:
     path: /etc/apparmor.d/{{ vault_apparmor_profile_name }}

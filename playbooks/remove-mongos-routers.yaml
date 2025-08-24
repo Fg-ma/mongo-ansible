@@ -7,6 +7,5 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/mongos_routers.yaml
   roles:
     - role: remove-mongos-routers

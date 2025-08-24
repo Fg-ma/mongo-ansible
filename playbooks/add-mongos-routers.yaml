@@ -7,7 +7,6 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/mongos_routers.yaml
   roles:
     - role: add-mongos-x509
 
@@ -23,7 +22,6 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/mongos_routers.yaml
   roles:
     - role: share
     - role: share-mongos

@@ -10,7 +10,6 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/shard_servers.yaml
   roles:
     - role: share
     - role: share-shard
@@ -27,7 +26,6 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/shard_servers.yaml
   roles:
     - role: init-shard-servers-replica-init
 
@@ -36,7 +34,6 @@
   become: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/shard_servers.yaml
   roles:
     - role: init-shard-servers-auth-start-up
 
@@ -49,6 +46,6 @@
       private: true
   vars_files:
     - ../vars/share.yaml
-    - ../vars/shard_servers.yaml
   roles:
+    - role: init-shard-servers-x509
     - role: init-shard-servers-notify-mongos

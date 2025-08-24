@@ -13,14 +13,16 @@ net:
     mode: requireTLS
     certificateKeyFile: {{ vault_dir }}/secrets/mongo/shard/mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
     CAFile: {{ vault_dir }}/authorities/ca.pem
+    clusterFile: {{ vault_dir }}/secrets/mongo/shard/mongo-shard-10.{{ mongo_shard_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
+    clusterCAFile: {{ vault_dir }}/authorities/ca.pem
     allowConnectionsWithoutCertificates: false
     allowInvalidCertificates: false
 
 replication:
-  replSetName: "{{ repl_set_name }}"
+  replSetName: "{{ shard_repl_set_name }}"
   
 sharding:
-  clusterRole: "{{ cluster_role }}"
+  clusterRole: "{{ shard_cluster_role }}"
 
 security:
   authorization: disabled

@@ -1,3 +1,0 @@
-repl_set_name: shardRS1
-cluster_role: shardsvr
-mongos_node: 10.40.0.101

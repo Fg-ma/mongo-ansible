@@ -85,6 +85,12 @@ sudo rm -rf /etc/systemd/system/fetch-vault-mongo-config-approle-ids.service
 sudo systemctl stop mongo-config-vault-agent.service
 sudo systemctl disable mongo-config-vault-agent.service
 sudo rm -rf /etc/systemd/system/mongo-config-vault-agent.service
+sudo systemctl stop fetch-vault-mongo-config-client-approle-ids.service
+sudo systemctl disable fetch-vault-mongo-config-client-approle-ids.service
+sudo rm -rf /etc/systemd/system/fetch-vault-mongo-config-client-approle-ids.service
+sudo systemctl stop mongo-config-client-vault-agent.service
+sudo systemctl disable mongo-config-client-vault-agent.service
+sudo rm -rf /etc/systemd/system/mongo-config-client-vault-agent.service
 sudo rm -rf /etc/sudoers.d/vaultagent-mongo
 sudo pkill -f vault-agent
 sudo systemctl daemon-reload
@@ -99,7 +105,6 @@ sudo systemctl daemon-reload
 
 sudo rm -rf /mnt/vault/certs/mongo/*
 
-// Force clean mongos server
 sudo systemctl stop mongos.service
 sudo systemctl disable mongos.service
 pkill mongos
@@ -120,13 +125,18 @@ sudo systemctl disable mongos-client-vault-agent.service
 sudo rm -rf /etc/systemd/system/mongos-client-vault-agent.service
 sudo systemctl daemon-reload
 
-// Force clean shard server
 sudo systemctl stop fetch-vault-mongo-shard-approle-ids.service
 sudo systemctl disable fetch-vault-mongo-shard-approle-ids.service
 sudo rm -rf /etc/systemd/system/fetch-vault-mongo-shard-approle-ids.service
 sudo systemctl stop mongo-shard-vault-agent.service
 sudo systemctl disable mongo-shard-vault-agent.service
 sudo rm -rf /etc/systemd/system/mongo-shard-vault-agent.service
+sudo systemctl stop fetch-vault-mongo-shard-client-approle-ids.service
+sudo systemctl disable fetch-vault-mongo-shard-client-approle-ids.service
+sudo rm -rf /etc/systemd/system/fetch-vault-mongo-shard-client-approle-ids.service
+sudo systemctl stop mongo-shard-client-vault-agent.service
+sudo systemctl disable mongo-shard-client-vault-agent.service
+sudo rm -rf /etc/systemd/system/mongo-shard-client-vault-agent.service
 sudo systemctl stop mongod-shardsvr.service
 sudo systemctl disable mongod-shardsvr.service
 sudo pkill -f mongod.*shardsvr
@@ -135,12 +145,12 @@ sudo rm -rf -R /mnt/mongo/shard
 sudo ls -l /mnt/mongo
 sudo systemctl daemon-reload
 
+sudo journalctl --rotate
+sudo journalctl --vacuum-time=1s
 
 
 python3 -c 'import urllib.parse; print(urllib.parse.quote("my/secure:password", safe=""))'
 
-sudo journalctl --rotate
-sudo journalctl --vacuum-time=1s
 
 
 sudo apparmor_parser -r /etc/apparmor.d/mnt.mongo.bin.mongod
