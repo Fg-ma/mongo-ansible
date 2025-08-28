@@ -8,7 +8,7 @@ net:
   bindIp: 10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}
   tls:
     mode: requireTLS
-    certificateKeyFile: {{ vault_dir }}/secrets/mongo/mongos-client/mongos-client-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
+    certificateKeyFile: {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
     CAFile: {{ vault_dir }}/authorities/ca.pem
     clusterFile: {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
     clusterCAFile: {{ vault_dir }}/authorities/ca.pem
@@ -19,7 +19,6 @@ sharding:
   configDB: {{ config_repl_set_name }}/{{ config_server_hosts | join(',') }}
 
 security:
-  authorization: enabled
   clusterAuthMode: x509
 
 setParameter:
