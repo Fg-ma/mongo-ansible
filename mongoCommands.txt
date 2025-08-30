@@ -7,11 +7,6 @@ sudo -u mongovaultagent /mnt/mongo/bin/mongosh "mongodb://admin:password@10.50.0
 // Mongos server login
 sudo -u mongovaultagent /mnt/mongo/bin/mongosh --host 10.40.0.101 --port 27021 --tls --tlsCertificateKeyFile /mnt/vault/secrets/mongo/mongos-client/mongos-client-10.40.0.101.pem --tlsCAFile /mnt/vault/authorities/ca.pem --authenticationMechanism MONGODB-X509 --authenticationDatabase '$external'
 
-sudo systemctl cat mongos.service
-sudo systemctl status mongos.service
-cat /mnt/mongo/mongos/conf/mongos.conf
-cat /mnt/mongo/mongos/logs/mongos.log
-
 // Format new mongo node
 - Make xfs partition
 sudo apt update
@@ -23,59 +18,6 @@ sudo mkfs.xfs /dev/sdb1
 lsblk -f
 sudo nano /etc/fstab
 UUID=1234-5678  /mnt/mongo  xfs  defaults  0  2
-
-use $external
-db.createUser({
-  user: "CN=10.60.0.101,OU=MongoConfigInternalCluster,O=TableTop,L=CNTL,ST=FL,C=US",
-  roles: [
-    { role: "clusterAdmin", db: "admin" },
-    { role: "clusterManager", db: "admin" },
-    { role: "hostManager", db: "admin" }
-  ]
-})
-db.createUser({
-  user: "CN=10.60.0.102,OU=MongoConfigInternalCluster,O=TableTop,L=CNTL,ST=FL,C=US",
-  roles: [
-    { role: "clusterAdmin", db: "admin" },
-    { role: "clusterManager", db: "admin" },
-    { role: "hostManager", db: "admin" }
-  ]
-})
-db.createUser({
-  user: "CN=10.60.0.103,OU=MongoConfigInternalCluster,O=TableTop,L=CNTL,ST=FL,C=US",
-  roles: [
-    { role: "clusterAdmin", db: "admin" },
-    { role: "clusterManager", db: "admin" },
-    { role: "hostManager", db: "admin" }
-  ]
-})
-
-use $external
-db.createUser({
-  user: "CN=10.40.0.101,OU=MongosClient,O=TableTop,L=CNTL,ST=FL,C=US",
-  roles: [
-    { role: "clusterManager", db: "admin" },
-    { role: "clusterAdmin", db: "admin" },
-    { role: "hostManager", db: "admin" }
-  ]
-})
-db.createUser({
-  user: "CN=10.40.0.102,OU=MongosClient,O=TableTop,L=CNTL,ST=FL,C=US",
-  roles: [
-    { role: "clusterManager", db: "admin" },
-    { role: "clusterAdmin", db: "admin" },
-    { role: "hostManager", db: "admin" }
-  ]
-})
-db.createUser({
-  user: "CN=10.40.0.103,OU=MongosClient,O=TableTop,L=CNTL,ST=FL,C=US",
-  roles: [
-    { role: "clusterManager", db: "admin" },
-    { role: "clusterAdmin", db: "admin" },
-    { role: "hostManager", db: "admin" }
-  ]
-})
-db.getUsers()
 
 // Force clean config server
 sudo rm -rf /etc/apparmor.d/mnt.vault.bin.vault

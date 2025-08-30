@@ -10,8 +10,6 @@ net:
     mode: requireTLS
     certificateKeyFile: {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
     CAFile: {{ vault_dir }}/authorities/ca.pem
-    clusterFile: {{ vault_dir }}/secrets/mongo/mongos/mongos-10.{{ mongo_mongos_subnet }}.0.{{ ansible_host.split('.')[-1] }}.pem
-    clusterCAFile: {{ vault_dir }}/authorities/ca.pem
     allowConnectionsWithoutCertificates: false
     allowInvalidCertificates: false
 
@@ -22,7 +20,7 @@ security:
   clusterAuthMode: x509
 
 setParameter:
-  authenticationMechanisms: "SCRAM-SHA-256,MONGODB-X509"
+  authenticationMechanisms: "MONGODB-X509"
 
 processManagement:
   pidFilePath: "{{ mongo_base_dir }}/mongos/logs/mongos.pid"

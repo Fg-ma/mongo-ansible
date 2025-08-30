@@ -46,8 +46,8 @@ cert_country: US
 cert_state: FL
 cert_locality: CNTL
 cert_organization: TableTop
-config_cert_ou: MongoConfigInternalCluster
-shard_cert_ou: MongoShardInternalCluster
+config_cert_ou: MongoInternalCluster
+shard_cert_ou: MongoInternalCluster
 mongos_cert_ou: MongosInternalCluster
 config_client_cert_ou: MongoConfigClient
 shard_client_cert_ou: MongoShardClient

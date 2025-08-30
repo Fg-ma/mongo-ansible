@@ -25,6 +25,21 @@
           mechanisms: ["MONGODB-X509"]
         });
       }
+
+      // Internal cluster cert user
+      if (!db.getUser("CN={{ item }}.mongo.mongos,OU={{ mongos_cert_ou }},O={{ cert_organization }},L={{ cert_locality }},ST={{ cert_state }},C={{ cert_country }}")) {
+        db.createUser({
+          user: "CN={{ item }}.mongo.mongos,OU={{ mongos_cert_ou }},O={{ cert_organization }},L={{ cert_locality }},ST={{ cert_state }},C={{ cert_country }}",
+          roles: [
+            { role: "root", db: "admin" },
+            { role: "__system", db: "admin" },
+            { role: "clusterMonitor", db: "admin" },
+            { role: "readWriteAnyDatabase", db: "admin" },
+            { role: "clusterManager", db: "admin" }
+          ],
+          mechanisms: ["MONGODB-X509"]
+        });
+      }
     '
   loop: "{{ groups['mongos_routers'] }}"
   loop_control:
